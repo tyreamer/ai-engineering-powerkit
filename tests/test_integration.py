@@ -26,6 +26,7 @@ PK_FILES = (
     "evals/routing-cases.json",
     "references/command-manifest.json",
     "references/proof-pack.md",
+    "references/modes.md",
     "references/routing.md",
 )
 

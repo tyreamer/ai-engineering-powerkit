@@ -47,6 +47,14 @@ python3 -m powerkit doctor --target <consumer-repository> --json
 
 An installed distribution exposes the equivalent `powerkit` command.
 
+When the developer asks about prompt weight, token cost, or progressive-disclosure regressions, use deterministic evidence rather than inspecting Markdown by eye:
+
+```bash
+python3 -m powerkit context audit --target <consumer-repository>
+```
+
+Do not run the full audit on every ordinary `pk` task.
+
 If the host cannot retrieve a release or execute local tooling, ask the human to run the single pinned install command from the manifest or provide the tagged archive. Do not fall back to manually copying skill text.
 
 Use the active coding assistant as evidence for `--platforms`: `codex`, `claude`, or `copilot`. Preserve platforms from project config on sync. If the active platform is genuinely ambiguous, ask one narrow question instead of guessing.

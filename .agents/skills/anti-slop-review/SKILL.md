@@ -1,10 +1,10 @@
 ---
 name: anti-slop-review
-description: "Detects superficially complete AI-generated implementation: placeholders, fake integrations, swallowed errors, ungrounded abstractions, dead code, TODO paths, weak tests, scope drift, and claims unsupported by runtime evidence. Use before handoff or PR creation."
+description: "Finds placeholders, fake integrations, swallowed errors, dead code, weak tests, and unsupported completion claims. Use before handoff or PR creation; do not use as a general style review."
 license: MIT
 metadata:
   author: ai-engineering-powerkit
-  version: "0.1.0"
+  version: "0.3.0"
   profile: quality
 ---
 

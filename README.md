@@ -228,6 +228,16 @@ A project can have many capabilities available while a small task loads only wha
 
 This matters for latency, context quality, and token usage.
 
+**PowerKit watches its own weight.**
+
+The Context Budget Auditor measures what PowerKit adds to coding-agent context, catches progressive-disclosure regressions, and tells you what to move, shorten, or lazy-load before prompt bloat becomes everyone's problem:
+
+```bash
+powerkit context audit --target .
+```
+
+It reports PowerKit-attributable estimates rather than pretending to know total provider input. Checked-in baselines and `--ci` protect always-on, discovery, and common-path budgets. See [Context budgets](docs/CONTEXT_BUDGETS.md).
+
 ---
 
 # The toolkit
@@ -302,6 +312,7 @@ PowerKit also includes deterministic tooling for:
 * explicitly selected version updates
 * managed-file ownership and content digests
 * repository status and health checks
+* offline context accounting, recommendations, baselines, and CI budgets
 * static validation
 * release packaging
 * repository-defined verification commands
@@ -396,6 +407,7 @@ The v0.3 installer and lifecycle commands are designed around:
 * collision-safe backups
 * dry runs for mutating lifecycle commands
 * digest-aware doctor checks
+* offline context-budget inspection with no consumer-code execution
 * stale-file pruning only when ownership remains proven
 * uninstall that refuses ambiguous or changed assets
 * deterministic package construction from reviewed tracked files

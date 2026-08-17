@@ -23,6 +23,8 @@ PowerKit writes:
 
 The project config is sufficient to reconstruct a team setup. The install manifest is sufficient to check idempotency, health, safe pruning, and safe uninstall.
 
+The optional `powerkit.context_budgets` object configures warning/CI limits. Static release or project comparisons use `.ai-powerkit/context-baseline.json`; observed client traces are deliberately not stored there.
+
 ## Deterministic flow
 
 From an exact tagged release checkout:
@@ -34,6 +36,8 @@ python3 -m powerkit init \
   --yes
 
 python3 -m powerkit doctor --target ../product-repo --json
+
+python3 -m powerkit context audit --target ../product-repo
 ```
 
 `init` defaults to all 24 canonical skills and includes specialized agents. Progressive disclosure still loads only the workflows relevant to a request. The installer does not stage or enable hooks. An agent should pass its known host platform explicitly when repository evidence is ambiguous.

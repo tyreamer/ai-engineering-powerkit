@@ -1,0 +1,31 @@
+{
+  "estimator": {
+    "id": "utf8-bytes-v1",
+    "quality": "estimated"
+  },
+  "platforms": {
+    "claude": {
+      "always_on_tokens": 681,
+      "deep_path_tokens": 13232,
+      "discovery_tokens": 1572,
+      "fast_path_tokens": 5948,
+      "standard_path_tokens": 10632
+    },
+    "codex": {
+      "always_on_tokens": 681,
+      "deep_path_tokens": 13232,
+      "discovery_tokens": 1572,
+      "fast_path_tokens": 5948,
+      "standard_path_tokens": 10632
+    },
+    "copilot": {
+      "always_on_tokens": 681,
+      "deep_path_tokens": 13360,
+      "discovery_tokens": 1572,
+      "fast_path_tokens": 6076,
+      "standard_path_tokens": 10760
+    }
+  },
+  "powerkit_version": "0.3.0",
+  "schema_version": 1
+}

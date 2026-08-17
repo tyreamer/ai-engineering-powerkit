@@ -29,16 +29,20 @@
 - Native `$pk` Codex skill invocation, `/pk` Claude skill invocation, and managed Copilot `/pk` prompt adapter for supported IDEs.
 - Installer, validation, routing-eval, documentation, and safe managed-update support for the command layer.
 
-## v0.3
+## v0.3.0
+
+- Offline context inventory for always-on, discovery, selected-skill, reference, agent, and adapter layers.
+- Platform-aware Codex, Claude, and Copilot estimates with explicit observed-data limitations.
+- Ranked context recommendations, configurable budgets, release baselines, CI regression protection, and concise doctor integration.
+- Context-audit lifecycle and safety coverage with PowerKit-on-PowerKit dogfooding.
+
+## v0.4
 
 - Live routing eval runner for Codex, Claude Code, and Copilot where automation is supported.
 - Recorded behavioral evals with scored assertions.
 - Generated adapter synchronization rather than copy-only installation.
 - Repository-specific command discovery and verification configuration wizard.
 - Skill telemetry that records invocation and outcome without collecting source code.
-
-## v0.4
-
 - Plugin packaging for supported marketplaces.
 - Signed release artifacts and checksums.
 - Enterprise allowlist and managed-policy examples.

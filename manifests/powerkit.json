@@ -10,6 +10,7 @@
     "status": "powerkit status",
     "doctor": "powerkit doctor",
     "proof": "powerkit proof",
+    "context_audit": "powerkit context audit",
     "update": "powerkit update",
     "uninstall": "powerkit uninstall"
   },
@@ -33,6 +34,16 @@
     "claude",
     "copilot"
   ],
+  "context_budgets": {
+    "policy": "warn",
+    "always_on_tokens": 900,
+    "discovery_tokens": 2100,
+    "fast_path_tokens": 8000,
+    "standard_path_tokens": 12000,
+    "deep_path_tokens": 15000,
+    "regression_percent": 20,
+    "regression_tokens": 250
+  },
   "release": {
     "tag": "v0.3.0",
     "python": ">=3.11",

@@ -188,6 +188,18 @@
       "must_activate": ["implementation-critic", "verification-loop", "test-gap-hunter"],
       "must_not_activate": ["vertical-slice-planner", "implementation-planner"],
       "preserved_constraints": ["review_only"]
+    },
+    {
+      "id": "context-budget-audit",
+      "category": "context_budget_audit",
+      "invocation": "/pk Audit PowerKit's context usage and tell me what I should fix.",
+      "command_mode": "auto",
+      "expected_intent": "research",
+      "expected_depth": "FAST",
+      "must_activate": ["prompt-preflight", "workload-router"],
+      "must_not_activate": ["engineering-task-orchestrator", "parallel-investigator", "adversarial-review"],
+      "preserved_constraints": ["deterministic_evidence", "no_prompt_eyeballing"],
+      "deterministic_command": "powerkit context audit"
     }
   ]
 }

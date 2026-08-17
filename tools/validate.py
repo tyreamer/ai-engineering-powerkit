@@ -63,6 +63,7 @@ PK_ROUTING_CATEGORIES = {
     "no_write",
     "no_heavyweight",
     "explicit_override",
+    "context_budget_audit",
 }
 
 
@@ -288,6 +289,7 @@ def validate_pk_command(known_skills: set[str], errors: list[str]) -> None:
     command_root = ROOT / ".agents/skills/pk"
     skill_path = command_root / "SKILL.md"
     routing_path = command_root / "references/routing.md"
+    modes_path = command_root / "references/modes.md"
     manifest_path = command_root / "references/command-manifest.json"
     cases_path = command_root / "evals/routing-cases.json"
 
@@ -445,6 +447,10 @@ def validate_pk_command(known_skills: set[str], errors: list[str]) -> None:
         errors.append(f"{routing_path.relative_to(ROOT)}: routing reference is missing")
     elif len(routing_path.read_text(encoding="utf-8").splitlines()) > 300:
         errors.append(f"{routing_path.relative_to(ROOT)}: routing reference is too large")
+    elif "[modes.md](modes.md)" not in routing_path.read_text(encoding="utf-8"):
+        errors.append(f"{routing_path.relative_to(ROOT)}: conditional mode reference is missing")
+    if not modes_path.is_file():
+        errors.append(f"{modes_path.relative_to(ROOT)}: mode composition reference is missing")
 
     routing_cases = validate_json(cases_path, errors)
     if not isinstance(routing_cases, dict):
@@ -481,6 +487,13 @@ def validate_pk_command(known_skills: set[str], errors: list[str]) -> None:
             errors.append(f"{cases_path.relative_to(ROOT)}: {case_id} has invalid expected_depth")
         if not str(case.get("expected_intent", "")).strip():
             errors.append(f"{cases_path.relative_to(ROOT)}: {case_id} expected_intent is required")
+        deterministic_command = case.get("deterministic_command")
+        if deterministic_command is not None and (
+            not isinstance(deterministic_command, str) or not deterministic_command.strip()
+        ):
+            errors.append(
+                f"{cases_path.relative_to(ROOT)}: {case_id} deterministic_command must be a string"
+            )
         activate = case.get("must_activate")
         reject = case.get("must_not_activate")
         constraints = case.get("preserved_constraints")
@@ -565,6 +578,28 @@ def main() -> int:
             "copilot",
         }:
             errors.append("manifests/powerkit.json supported_platforms is invalid")
+        commands = distribution.get("commands")
+        if not isinstance(commands, dict) or commands.get("context_audit") != "powerkit context audit":
+            errors.append("manifests/powerkit.json must expose powerkit context audit")
+        context_budgets = distribution.get("context_budgets")
+        required_budgets = {
+            "always_on_tokens",
+            "discovery_tokens",
+            "fast_path_tokens",
+            "standard_path_tokens",
+            "deep_path_tokens",
+            "regression_percent",
+            "regression_tokens",
+        }
+        if not isinstance(context_budgets, dict):
+            errors.append("manifests/powerkit.json context_budgets is required")
+        else:
+            if context_budgets.get("policy") not in {"warn", "fail_ci", "disabled"}:
+                errors.append("manifests/powerkit.json context_budgets.policy is invalid")
+            for key in required_budgets:
+                value = context_budgets.get(key)
+                if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+                    errors.append(f"manifests/powerkit.json context_budgets.{key} is invalid")
         release = distribution.get("release")
         expected_tag = f"v{version}"
         if not isinstance(release, dict) or release.get("tag") != expected_tag:
@@ -659,6 +694,43 @@ def main() -> int:
             errors.append("schemas/proof-manifest.schema.json must define schema version 1")
         if not isinstance(required, list) or not required_fields <= set(required):
             errors.append("schemas/proof-manifest.schema.json is missing canonical evidence fields")
+        if (
+            isinstance(distribution, dict)
+            and isinstance(powerkit, dict)
+            and powerkit.get("context_budgets") != distribution.get("context_budgets")
+        ):
+            errors.append(
+                "templates/project-config.example.json context budgets must match distribution defaults"
+            )
+
+    audit_schema = validate_json(ROOT / "schemas/context-audit-v1.schema.json", errors)
+    baseline_schema = validate_json(ROOT / "schemas/context-baseline-v1.schema.json", errors)
+    if isinstance(audit_schema, dict):
+        required = audit_schema.get("required")
+        expected = {
+            "schema_version",
+            "scope",
+            "estimator",
+            "summary",
+            "platforms",
+            "artifacts",
+            "recommendations",
+            "budgets",
+            "baseline_comparison",
+            "warnings",
+            "limitations",
+        }
+        if not isinstance(required, list) or not expected <= set(required):
+            errors.append("schemas/context-audit-v1.schema.json omits required report fields")
+    if isinstance(baseline_schema, dict):
+        required = baseline_schema.get("required")
+        if not isinstance(required, list) or set(required) != {
+            "schema_version",
+            "powerkit_version",
+            "estimator",
+            "platforms",
+        }:
+            errors.append("schemas/context-baseline-v1.schema.json has invalid required fields")
 
     skill_root = ROOT / ".agents" / "skills"
     if not skill_root.is_dir():

@@ -1,10 +1,10 @@
 ---
 name: adversarial-review
-description: "Challenges high-risk plans, architectures, decisions, or completion claims by trying to falsify their load-bearing assumptions. Use before irreversible work or when concrete counterexamples matter; use implementation-critic for ordinary completed-implementation PR readiness."
+description: "Tries to falsify high-risk plans, architectures, decisions, and completion claims. Use when concrete counterexamples matter; do not use for ordinary PR-readiness review."
 license: MIT
 metadata:
   author: ai-engineering-powerkit
-  version: "0.1.0"
+  version: "0.3.0"
   profile: quality
 ---
 

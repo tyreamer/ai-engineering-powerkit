@@ -1,0 +1,292 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tyreamer/ai-engineering-powerkit/schemas/context-audit-v1.schema.json",
+  "title": "PowerKit Context Audit v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "scope",
+    "estimator",
+    "summary",
+    "platforms",
+    "artifacts",
+    "recommendations",
+    "protected_repetitions",
+    "budgets",
+    "baseline_comparison",
+    "warnings",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "kind", "inventory_source", "install_scope", "profiles", "powerkit_version"],
+      "properties": {
+        "target": {"type": "string"},
+        "kind": {"enum": ["distribution-source", "installed", "desired-installation"]},
+        "inventory_source": {"type": "string"},
+        "install_scope": {"enum": ["project", "user"]},
+        "profiles": {"type": "array", "items": {"type": "string"}},
+        "powerkit_version": {"type": "string"}
+      }
+    },
+    "estimator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "quality", "note"],
+      "properties": {
+        "id": {"type": "string"},
+        "label": {"type": "string"},
+        "quality": {"enum": ["exact", "estimated"]},
+        "note": {"type": "string"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "platform_count",
+        "budget_exceeded_count",
+        "budget_watch_count",
+        "meaningful_regression_count",
+        "highest_value_opportunity",
+        "estimated_top_savings_tokens",
+        "powerkit_attributable_only",
+        "observed_runtime_context"
+      ],
+      "properties": {
+        "status": {"enum": ["healthy", "watch", "needs_attention"]},
+        "platform_count": {"$ref": "#/$defs/nonNegativeInteger"},
+        "budget_exceeded_count": {"$ref": "#/$defs/nonNegativeInteger"},
+        "budget_watch_count": {"$ref": "#/$defs/nonNegativeInteger"},
+        "meaningful_regression_count": {"$ref": "#/$defs/nonNegativeInteger"},
+        "highest_value_opportunity": {"type": ["string", "null"]},
+        "estimated_top_savings_tokens": {"$ref": "#/$defs/nonNegativeInteger"},
+        "powerkit_attributable_only": {"const": true},
+        "observed_runtime_context": {"enum": ["unavailable", "available"]}
+      }
+    },
+    "platforms": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/platform"}
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/artifact"}
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/recommendation"}
+    },
+    "protected_repetitions": {"$ref": "#/$defs/nonNegativeInteger"},
+    "budgets": {"$ref": "#/$defs/budgets"},
+    "baseline_comparison": {"$ref": "#/$defs/baselineComparison"},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "baseline_written": {"type": "string"}
+  },
+  "$defs": {
+    "nonNegativeInteger": {"type": "integer", "minimum": 0},
+    "nullableNonNegativeInteger": {
+      "oneOf": [
+        {"$ref": "#/$defs/nonNegativeInteger"},
+        {"type": "null"}
+      ]
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bytes", "characters", "tokens", "quality"],
+      "properties": {
+        "bytes": {"$ref": "#/$defs/nonNegativeInteger"},
+        "characters": {"$ref": "#/$defs/nonNegativeInteger"},
+        "tokens": {"$ref": "#/$defs/nonNegativeInteger"},
+        "quality": {"enum": ["exact", "estimated"]}
+      }
+    },
+    "path": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "tokens", "missing_skills", "components", "skills"],
+      "properties": {
+        "status": {"enum": ["estimated", "partial", "not_configured"]},
+        "tokens": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+        "missing_skills": {"type": "array", "items": {"type": "string"}},
+        "components": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["always_on", "discovery", "selected_skills", "skill_references", "platform_adapter", "generated_task_context"],
+          "properties": {
+            "always_on": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+            "discovery": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+            "selected_skills": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+            "skill_references": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+            "platform_adapter": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+            "generated_task_context": {"$ref": "#/$defs/nullableNonNegativeInteger"}
+          }
+        },
+        "skills": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "label", "configuration_status", "loading_model", "observation", "totals", "paths"],
+      "properties": {
+        "name": {"enum": ["codex", "claude", "copilot"]},
+        "label": {"type": "string"},
+        "configuration_status": {"enum": ["configured", "not_configured"]},
+        "loading_model": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["always_on", "discovery", "selected_skill", "references", "agents"],
+          "properties": {
+            "always_on": {"type": "string"},
+            "discovery": {"type": "string"},
+            "selected_skill": {"type": "string"},
+            "references": {"type": "string"},
+            "agents": {"type": "string"}
+          }
+        },
+        "observation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "detail"],
+          "properties": {
+            "status": {"enum": ["unsupported", "observed", "platform_reported", "unknown"]},
+            "detail": {"type": "string"}
+          }
+        },
+        "totals": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["always_on_tokens", "discovery_tokens", "agent_instruction_tokens", "adapter_tokens", "discoverable_skills", "discovery_bytes", "average_description_tokens"],
+          "properties": {
+            "always_on_tokens": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+            "discovery_tokens": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+            "agent_instruction_tokens": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+            "adapter_tokens": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+            "discoverable_skills": {"$ref": "#/$defs/nonNegativeInteger"},
+            "discovery_bytes": {"$ref": "#/$defs/nonNegativeInteger"},
+            "average_description_tokens": {"type": "number", "minimum": 0}
+          }
+        },
+        "paths": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["fast", "standard", "deep"],
+          "properties": {
+            "fast": {"$ref": "#/$defs/path"},
+            "standard": {"$ref": "#/$defs/path"},
+            "deep": {"$ref": "#/$defs/path"}
+          }
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "category", "path", "platforms", "measurement", "evidence", "load_behavior"],
+      "properties": {
+        "id": {"type": "string"},
+        "category": {"enum": ["always_on_instruction", "skill_discovery_metadata", "selected_skill_body", "skill_reference", "agent_instruction", "platform_adapter"]},
+        "path": {"type": "string"},
+        "platforms": {"type": "array", "items": {"enum": ["codex", "claude", "copilot"]}},
+        "measurement": {"$ref": "#/$defs/measurement"},
+        "evidence": {"type": "string"},
+        "load_behavior": {"type": "string"},
+        "skill": {"type": "string"},
+        "profile": {"type": ["string", "null"]},
+        "metadata": {"type": "object"}
+      }
+    },
+    "recommendation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "class", "priority", "what", "why", "suggested_change", "estimated_impact", "estimated_savings_tokens", "confidence", "evidence", "safety", "affected_paths"],
+      "properties": {
+        "id": {"type": "string"},
+        "class": {"enum": ["oversized_always_on", "oversized_skill_description", "metadata_explosion", "reference_candidate", "reference_loaded_too_eagerly", "duplicate_instruction", "cross_skill_overlap", "agent_prompt_bloat", "adapter_duplication"]},
+        "priority": {"enum": ["highest_impact", "worth_doing", "minor_cleanup"]},
+        "what": {"type": "string"},
+        "why": {"type": "string"},
+        "suggested_change": {"type": "string"},
+        "estimated_impact": {"type": "string"},
+        "estimated_savings_tokens": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+        "confidence": {"enum": ["high", "medium", "low"]},
+        "evidence": {"type": "string"},
+        "safety": {"enum": ["safe_to_auto_fix", "requires_review"]},
+        "affected_paths": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "configuredBudgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy", "always_on_tokens", "discovery_tokens", "fast_path_tokens", "standard_path_tokens", "deep_path_tokens", "regression_percent", "regression_tokens"],
+      "properties": {
+        "policy": {"enum": ["warn", "fail_ci", "disabled"]},
+        "always_on_tokens": {"$ref": "#/$defs/nonNegativeInteger"},
+        "discovery_tokens": {"$ref": "#/$defs/nonNegativeInteger"},
+        "fast_path_tokens": {"$ref": "#/$defs/nonNegativeInteger"},
+        "standard_path_tokens": {"$ref": "#/$defs/nonNegativeInteger"},
+        "deep_path_tokens": {"$ref": "#/$defs/nonNegativeInteger"},
+        "regression_percent": {"$ref": "#/$defs/nonNegativeInteger"},
+        "regression_tokens": {"$ref": "#/$defs/nonNegativeInteger"}
+      }
+    },
+    "budgetEvaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["platform", "metric", "current", "maximum", "status", "over_by"],
+      "properties": {
+        "platform": {"enum": ["codex", "claude", "copilot"]},
+        "metric": {"enum": ["always_on_tokens", "discovery_tokens", "fast_path_tokens", "standard_path_tokens", "deep_path_tokens"]},
+        "current": {"$ref": "#/$defs/nullableNonNegativeInteger"},
+        "maximum": {"$ref": "#/$defs/nonNegativeInteger"},
+        "status": {"enum": ["within_budget", "watch", "exceeded", "not_measurable"]},
+        "over_by": {"$ref": "#/$defs/nonNegativeInteger"}
+      }
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy", "configured", "evaluations", "ci_enforced", "ci_failed"],
+      "properties": {
+        "policy": {"enum": ["warn", "fail_ci", "disabled"]},
+        "configured": {"$ref": "#/$defs/configuredBudgets"},
+        "evaluations": {"type": "array", "items": {"$ref": "#/$defs/budgetEvaluation"}},
+        "ci_enforced": {"type": "boolean"},
+        "ci_failed": {"type": "boolean"}
+      }
+    },
+    "baselineMetricComparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["platform", "metric", "baseline", "current", "delta", "percent", "meaningful_regression"],
+      "properties": {
+        "platform": {"enum": ["codex", "claude", "copilot"]},
+        "metric": {"enum": ["always_on_tokens", "discovery_tokens", "fast_path_tokens", "standard_path_tokens", "deep_path_tokens"]},
+        "baseline": {"$ref": "#/$defs/nonNegativeInteger"},
+        "current": {"$ref": "#/$defs/nonNegativeInteger"},
+        "delta": {"type": "integer"},
+        "percent": {"type": "number"},
+        "meaningful_regression": {"type": "boolean"}
+      }
+    },
+    "baselineComparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "path", "comparisons"],
+      "properties": {
+        "status": {"enum": ["unavailable", "compared", "incompatible_estimator", "incomplete_baseline"]},
+        "path": {"type": "string"},
+        "comparisons": {"type": "array", "items": {"$ref": "#/$defs/baselineMetricComparison"}},
+        "detail": {"type": "string"}
+      }
+    }
+  }
+}

@@ -7,6 +7,12 @@
 - Added evidence freshness checks, source-file snapshots, independent-verifier separation for high-risk work, artifact sensitivity handling, and scriptless CSP-restricted report rendering.
 - Added `powerkit proof create|list|show|delete`, depth-aware `/pk` completion policy, local lifecycle configuration, and schema/package integration.
 - Added deterministic coverage for depth policy, adaptive task modules, failed/skipped/stale evidence, hostile HTML, redaction, symlink containment, report failure isolation, relocation, and generated-proof lifecycle.
+- Added the offline `powerkit context audit` command with human and stable JSON reports for always-on instructions, discovery metadata, selected skills, references, agents, adapters, and modeled FAST/STANDARD/DEEP paths.
+- Added deterministic UTF-8 token estimates, platform-aware Codex/Claude/Copilot loading models, explicit unsupported-observation reporting, ranked architectural recommendations, project budgets, checked-in baselines, and CI regression exits.
+- Added concise context-budget health to `powerkit doctor` without dumping the full audit.
+- Added source, installed, desired-state/team-clone, relocation, minimal-profile, all-profile, and user-scope inventory behavior with traversal, symlink, malformed-UTF-8, terminal-control, and no-execution safeguards.
+- Split detailed `pk` mode recipes behind a conditional reference and shortened seven discovery descriptions while preserving activation boundaries, reducing the measured common FAST path by about 1.3k estimated tokens.
+- Added context-routing evals, context-budget documentation, and deterministic coverage for counting, classification, recommendations, platforms, budgets, baselines, lifecycle, and safety.
 
 ## 0.2.0 — 2026-08-17
 

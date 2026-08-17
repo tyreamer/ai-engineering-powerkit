@@ -8,6 +8,14 @@ import sys
 from pathlib import Path
 from typing import Any, Sequence
 
+from powerkit.context_budget import (
+    DEFAULT_BASELINE_PATH,
+    audit_context,
+    normalize_platforms as normalize_audit_platforms,
+    render_context_report,
+    safe_terminal_text,
+    write_baseline,
+)
 from powerkit.health import HealthReport, run_health_checks
 from powerkit.installer import InstallRequest, csv_values, execute_install
 from powerkit.lifecycle import execute_uninstall
@@ -72,9 +80,12 @@ def stable_version_key(value: str) -> tuple[int, ...] | None:
 
 def render_health(report: HealthReport) -> None:
     for check in report.checks:
-        print(f"{'✓' if check.ok else '✗'} {check.name}: {check.detail}")
-        if not check.ok and check.fix:
-            print(f"  Fix: {check.fix}")
+        symbol = "✗" if not check.ok else ("⚠" if check.warning else "✓")
+        name = safe_terminal_text(check.name)
+        detail = safe_terminal_text(check.detail)
+        print(f"{symbol} {name}: {detail}")
+        if check.fix and (not check.ok or check.warning):
+            print(f"  Fix: {safe_terminal_text(check.fix)}")
     print()
     print("PowerKit is healthy." if report.healthy else "PowerKit needs attention.")
 
@@ -583,6 +594,34 @@ def command_proof_delete(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_context_audit(args: argparse.Namespace) -> int:
+    target = target_path(args.target)
+    platforms = (
+        normalize_audit_platforms(part for value in args.platform for part in value.split(","))
+        if args.platform
+        else None
+    )
+    try:
+        result = audit_context(
+            target,
+            platforms=platforms,
+            baseline_path=args.baseline,
+            ci=bool(args.ci),
+        )
+        if args.write_baseline is not None:
+            destination = write_baseline(target, args.write_baseline, result.payload)
+            result.payload["baseline_written"] = str(destination.relative_to(target))
+    except RuntimeError as exc:
+        raise RuntimeError(safe_terminal_text(str(exc))) from exc
+    if args.json:
+        print(json.dumps(result.payload, indent=2))
+    else:
+        print(render_context_report(result.payload), end="")
+        if args.write_baseline is not None:
+            print(f"Baseline written: {result.payload['baseline_written']}")
+    return 1 if result.ci_failed else 0
+
+
 def add_target(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--target", type=Path, default=Path("."))
 
@@ -706,6 +745,40 @@ def build_parser() -> argparse.ArgumentParser:
     proof_delete.add_argument("--dry-run", action="store_true")
     proof_delete.add_argument("--yes", action="store_true")
     proof_delete.set_defaults(handler=command_proof_delete)
+    context = subparsers.add_parser(
+        "context",
+        help="Inspect PowerKit-attributable coding-agent context",
+    )
+    context_commands = context.add_subparsers(dest="context_command", required=True)
+    audit = context_commands.add_parser(
+        "audit",
+        help="Measure context layers and recommend safe progressive-disclosure improvements",
+    )
+    add_target(audit)
+    audit.add_argument(
+        "--platform",
+        action="append",
+        help="codex, claude, copilot, or all; repeat or comma-separate values",
+    )
+    audit.add_argument("--json", action="store_true", help="Print the stable JSON report")
+    audit.add_argument(
+        "--ci",
+        action="store_true",
+        help="Fail on configured budget breaches or meaningful baseline regressions",
+    )
+    audit.add_argument(
+        "--baseline",
+        type=Path,
+        help=f"Compare with a baseline (default: {DEFAULT_BASELINE_PATH})",
+    )
+    audit.add_argument(
+        "--write-baseline",
+        type=Path,
+        nargs="?",
+        const=DEFAULT_BASELINE_PATH,
+        help=f"Write a static baseline (default: {DEFAULT_BASELINE_PATH})",
+    )
+    audit.set_defaults(handler=command_context_audit)
     return parser
 
 
