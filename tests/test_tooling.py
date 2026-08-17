@@ -944,6 +944,48 @@ class ToolingTests(unittest.TestCase):
         finally:
             untracked.unlink(missing_ok=True)
 
+    def test_source_archive_runs_broker_in_fresh_directory(self) -> None:
+        result = self.run_cmd("tools/package.py")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        archive_path = Path(result.stdout.strip().splitlines()[-1])
+        with tempfile.TemporaryDirectory() as temp:
+            destination = Path(temp)
+            with zipfile.ZipFile(archive_path) as archive:
+                archive.extractall(destination)
+            source = destination / "ai-engineering-powerkit"
+            for relative in (
+                "powerkit/broker.py",
+                "schemas/execution-broker-v1.schema.json",
+                "adapters/codex/capabilities.json",
+                "adapters/claude/capabilities.json",
+                "adapters/copilot/capabilities.json",
+            ):
+                self.assertTrue((source / relative).is_file(), relative)
+            smoke = subprocess.run(
+                [
+                    PYTHON,
+                    "-m",
+                    "powerkit",
+                    "broker",
+                    "explain",
+                    "--effort",
+                    "FAST",
+                    "--risk",
+                    "NORMAL",
+                    "--platform",
+                    "codex",
+                    "--surface",
+                    "app",
+                    "--compact",
+                ],
+                cwd=source,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(smoke.returncode, 0, smoke.stdout + smoke.stderr)
+            self.assertIn("decision=PROCEED", smoke.stdout)
+
     def test_package_rejects_tracked_symlink_candidate(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             external = Path(temp) / "secret"

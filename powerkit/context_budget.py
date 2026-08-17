@@ -1180,8 +1180,38 @@ def _path_skill_names(
     return tuple(dict.fromkeys(selected))
 
 
+def _broker_context_tokens(
+    manifest: Mapping[str, Any] | None,
+    platform: str,
+    depth: str,
+    estimator: TokenEstimator,
+) -> int:
+    if not manifest or not isinstance(manifest.get("execution_broker"), Mapping):
+        return 0
+    try:
+        from powerkit.broker import render_compact_policy, resolve_policy
+
+        directive = render_compact_policy(
+            resolve_policy(
+                effort=depth.upper(),
+                risk="NORMAL",
+                platform=platform,
+                control_plane="CURRENT_SESSION",
+            )
+        )
+    except RuntimeError as exc:
+        raise ContextAuditError(
+            f"Unable to estimate execution-broker context for {platform}: {exc}"
+        ) from exc
+    return estimator.measure(directive).tokens
+
+
 def _platform_summary(
-    artifacts: Sequence[Artifact], platform: str, *, configured: bool
+    artifacts: Sequence[Artifact],
+    platform: str,
+    *,
+    configured: bool,
+    estimator: TokenEstimator,
 ) -> dict[str, Any]:
     if not configured:
         empty_path = {
@@ -1269,7 +1299,17 @@ def _platform_summary(
         selected_tokens = sum(skills[name].measurement.tokens for name in required if name in skills)
         adapter_tokens = adapter if "pk" in required else 0
         reference_tokens = routing_tokens + (mode_tokens if depth in {"standard", "deep"} else 0)
-        total = None if missing else always_on + discovery + selected_tokens + reference_tokens + adapter_tokens
+        generated_tokens = _broker_context_tokens(manifest, platform, depth, estimator)
+        total = (
+            None
+            if missing
+            else always_on
+            + discovery
+            + selected_tokens
+            + reference_tokens
+            + adapter_tokens
+            + generated_tokens
+        )
         paths[depth] = {
             "status": "partial" if missing else "estimated",
             "tokens": total,
@@ -1280,7 +1320,7 @@ def _platform_summary(
                 "selected_skills": selected_tokens,
                 "skill_references": reference_tokens,
                 "platform_adapter": adapter_tokens,
-                "generated_task_context": None,
+                "generated_task_context": generated_tokens,
             },
             "skills": list(required),
         }
@@ -1893,6 +1933,7 @@ def audit_context(
             inventory.artifacts,
             platform,
             configured=platform in inventory.configured_platforms,
+            estimator=estimator,
         )
         for platform in inventory.platforms
     ]

@@ -4,7 +4,7 @@ description: "Selects the lightest effective execution mode, reasoning depth, an
 license: MIT
 metadata:
   author: ai-engineering-powerkit
-  version: "0.1.0"
+  version: "0.2.0"
   profile: foundation
 ---
 
@@ -26,7 +26,7 @@ Evaluate:
 - Evidence needs: static, tests, integration, runtime, external documentation.
 - Reversibility: easy rollback versus data or contract consequences.
 
-## Execution modes
+## Effort axis
 
 ### Fast
 
@@ -48,12 +48,24 @@ Use for ordinary features and bugs.
 
 ### Deep
 
-Use for architecture, security, migrations, intermittent bugs, public contracts, or high blast radius.
+Use for architecture, migrations, intermittent bugs, cross-cutting work, or high reasoning complexity.
 
 - Separate exploration, architecture, verification, and adversarial review.
 - Use higher reasoning capability where available.
 - Require rollback and uncertainty reporting.
 - Keep one writer unless file boundaries are truly independent.
+
+## Risk axis
+
+Select risk independently from effort:
+
+- **Normal** — ordinary reversible engineering work.
+- **Elevated** — meaningful compatibility, data, dependency, rollout, or external-write consequence.
+- **High** — security, privacy, authorization, secrets, production data, billing, destructive actions, public contracts, or irreversible consequence.
+
+Risk tightens permissions, checkpoints, verification, isolation, rollback, and proof. It does not automatically increase agent count or root reasoning. A small credential edit may be `FAST × HIGH`; a large read-only architecture study may be `DEEP × NORMAL`.
+
+Keep `HIGH_RISK` as a public compatibility label when an existing proof or command interface requires one. Internally use `risk: HIGH` plus the independently selected effort.
 
 ### Parallel read swarm
 
@@ -69,6 +81,7 @@ Avoid when findings are tightly sequential or the cost of synthesis exceeds the 
 - Use deep capability for ambiguous causality, architecture tradeoffs, security, migrations, and final synthesis.
 - Use multimodal capability when screenshots, diagrams, or runtime visual evidence materially affect the answer.
 - Do not use parallel write agents on overlapping files.
+- Never let economy or latency preferences remove risk-required verification or checkpoints.
 - Cap delegation. Start with the fewest agents likely to improve the result.
 - Return concise evidence packets, not raw logs.
 
@@ -76,7 +89,7 @@ Avoid when findings are tightly sequential or the cost of synthesis exceeds the 
 
 Routing may remain internal. When useful, state:
 
-- Selected mode.
+- Selected effort and risk.
 - Delegated investigations.
 - Single-writer owner.
 - Required quality gates.

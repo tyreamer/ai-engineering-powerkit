@@ -1,0 +1,492 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tyreamer/ai-engineering-powerkit/schemas/execution-broker-v1.schema.json",
+  "title": "PowerKit Execution Broker Decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "classification",
+    "inputs",
+    "platform",
+    "desired_policy",
+    "negotiation",
+    "telemetry"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested_effort",
+        "requested_risk",
+        "effective_effort",
+        "effective_risk",
+        "compatibility_depth",
+        "escalations",
+        "reasons"
+      ],
+      "properties": {
+        "requested_effort": {"$ref": "#/$defs/effort"},
+        "requested_risk": {"$ref": "#/$defs/risk"},
+        "effective_effort": {"$ref": "#/$defs/effort"},
+        "effective_risk": {"$ref": "#/$defs/risk"},
+        "compatibility_depth": {
+          "enum": ["FAST", "STANDARD", "DEEP", "HIGH_RISK"]
+        },
+        "escalations": {"$ref": "#/$defs/string_array"},
+        "reasons": {"$ref": "#/$defs/string_array"}
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["constraints", "traits", "project_policy"],
+      "properties": {
+        "constraints": {"$ref": "#/$defs/constraints"},
+        "traits": {"$ref": "#/$defs/traits"},
+        "project_policy": {"$ref": "#/$defs/project_policy"}
+      }
+    },
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "display_name",
+        "surface",
+        "surface_label",
+        "control_plane",
+        "capability_last_verified",
+        "capability_status",
+        "capability_error",
+        "client_version"
+      ],
+      "properties": {
+        "name": {"enum": ["codex", "claude", "copilot"]},
+        "display_name": {"type": "string", "minLength": 1},
+        "surface": {"type": "string", "minLength": 1},
+        "surface_label": {"type": "string", "minLength": 1},
+        "control_plane": {"enum": ["CURRENT_SESSION", "LAUNCHER"]},
+        "capability_last_verified": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "capability_status": {"enum": ["CONTRACT", "FALLBACK", "VERSION_MISMATCH"]},
+        "capability_error": {"type": ["string", "null"]},
+        "client_version": {"type": ["string", "null"]}
+      }
+    },
+    "desired_policy": {"$ref": "#/$defs/desired_policy"},
+    "negotiation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision",
+        "blocking_reasons",
+        "checkpoint_reasons",
+        "checkpoint_boundary",
+        "caveats",
+        "controls",
+        "native_settings"
+      ],
+      "properties": {
+        "decision": {"enum": ["PROCEED", "CHECKPOINT", "STOP"]},
+        "blocking_reasons": {"$ref": "#/$defs/string_array"},
+        "checkpoint_reasons": {"$ref": "#/$defs/string_array"},
+        "checkpoint_boundary": {"type": ["string", "null"]},
+        "caveats": {"$ref": "#/$defs/string_array"},
+        "controls": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "model_selection",
+            "reasoning_effort",
+            "parallel_agents",
+            "agent_roles",
+            "context_budget",
+            "tool_restriction",
+            "filesystem_scope",
+            "network_restriction",
+            "shell_restriction",
+            "max_iterations",
+            "checkpoints",
+            "execution_isolation",
+            "runtime_browser",
+            "usage_telemetry",
+            "external_write_gating",
+            "mcp_restriction"
+          ],
+          "properties": {
+            "model_selection": {"$ref": "#/$defs/effective_control"},
+            "reasoning_effort": {"$ref": "#/$defs/effective_control"},
+            "parallel_agents": {"$ref": "#/$defs/effective_control"},
+            "agent_roles": {"$ref": "#/$defs/effective_control"},
+            "context_budget": {"$ref": "#/$defs/effective_control"},
+            "tool_restriction": {"$ref": "#/$defs/effective_control"},
+            "filesystem_scope": {"$ref": "#/$defs/effective_control"},
+            "network_restriction": {"$ref": "#/$defs/effective_control"},
+            "shell_restriction": {"$ref": "#/$defs/effective_control"},
+            "max_iterations": {"$ref": "#/$defs/effective_control"},
+            "checkpoints": {"$ref": "#/$defs/effective_control"},
+            "execution_isolation": {"$ref": "#/$defs/effective_control"},
+            "runtime_browser": {"$ref": "#/$defs/effective_control"},
+            "usage_telemetry": {"$ref": "#/$defs/effective_control"},
+            "external_write_gating": {"$ref": "#/$defs/effective_control"},
+            "mcp_restriction": {"$ref": "#/$defs/effective_control"}
+          }
+        },
+        "native_settings": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/native_setting"}
+        }
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requested", "estimated", "observed"],
+      "properties": {
+        "requested": {"$ref": "#/$defs/requested_telemetry"},
+        "estimated": {"$ref": "#/$defs/estimated_telemetry"},
+        "observed": {"type": "object"}
+      }
+    },
+    "trace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "task_id"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^\\.ai-powerkit/traces/(?:(?!\\.\\.?/)[A-Za-z0-9._-]+/)*(?!\\.\\.?$)[A-Za-z0-9._-]+\\.json$"},
+        "task_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"}
+      }
+    },
+    "application": {"$ref": "#/$defs/application"}
+  },
+  "$defs": {
+    "effort": {"enum": ["FAST", "STANDARD", "DEEP"]},
+    "risk": {"enum": ["NORMAL", "ELEVATED", "HIGH"]},
+    "string_array": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "constraints": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "PLAN_ONLY",
+          "NO_WRITE",
+          "NO_NETWORK",
+          "NO_DEPENDENCIES",
+          "NO_PARALLEL",
+          "NO_SHELL",
+          "COST_SENSITIVE",
+          "LATENCY_SENSITIVE",
+          "STRONGEST_REASONING",
+          "BOUNDED_SCOPE",
+          "ISOLATION_REQUIRED"
+        ]
+      }
+    },
+    "traits": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "READ_ONLY",
+          "ARCHITECTURE",
+          "MIGRATION",
+          "RUNTIME",
+          "SECURITY_SENSITIVE",
+          "AUTHORIZATION",
+          "PRIVACY",
+          "SECRETS",
+          "PRODUCTION_DATA",
+          "BILLING",
+          "PUBLIC_CONTRACT",
+          "DESTRUCTIVE",
+          "EXTERNAL_WRITE",
+          "DEPENDENCY_CHANGE"
+        ]
+      }
+    },
+    "project_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cost_preference",
+        "latency_preference",
+        "max_parallel_agents",
+        "allow_model_upgrade",
+        "allow_network",
+        "high_risk_requires_checkpoint",
+        "iteration_limits",
+        "adapter_overrides"
+      ],
+      "properties": {
+        "cost_preference": {"enum": ["ECONOMY", "BALANCED", "QUALITY"]},
+        "latency_preference": {"enum": ["FASTEST", "BALANCED", "QUALITY"]},
+        "max_parallel_agents": {"type": "integer", "minimum": 1, "maximum": 16},
+        "allow_model_upgrade": {"type": "boolean"},
+        "allow_network": {"enum": ["NEVER", "WHEN_REQUIRED", "ALLOW"]},
+        "high_risk_requires_checkpoint": {"type": "boolean"},
+        "iteration_limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["FAST", "STANDARD", "DEEP"],
+          "properties": {
+            "FAST": {"type": "integer", "minimum": 1, "maximum": 100},
+            "STANDARD": {"type": "integer", "minimum": 1, "maximum": 100},
+            "DEEP": {"type": "integer", "minimum": 1, "maximum": 100}
+          }
+        },
+        "adapter_overrides": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "codex": {"$ref": "#/$defs/adapter_override"},
+            "claude": {"$ref": "#/$defs/adapter_override"},
+            "copilot": {"$ref": "#/$defs/adapter_override"}
+          }
+        }
+      }
+    },
+    "adapter_override": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_tiers"],
+      "properties": {
+        "model_tiers": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ECONOMY": {"type": "string", "minLength": 1},
+            "BALANCED": {"type": "string", "minLength": 1},
+            "STRONG": {"type": "string", "minLength": 1},
+            "MAXIMUM": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "desired_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "intelligence",
+        "agents",
+        "context",
+        "permissions",
+        "verification",
+        "safety",
+        "proof",
+        "limits",
+        "telemetry"
+      ],
+      "properties": {
+        "intelligence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["model_tier", "reasoning", "allow_model_upgrade"],
+          "properties": {
+            "model_tier": {"enum": ["ECONOMY", "BALANCED", "STRONG", "MAXIMUM"]},
+            "reasoning": {"enum": ["LOW", "MEDIUM", "HIGH", "MAXIMUM"]},
+            "allow_model_upgrade": {"type": "boolean"}
+          }
+        },
+        "agents": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["max_parallel", "roles", "one_writer", "independent_verifier", "adversarial_critic"],
+          "properties": {
+            "max_parallel": {"type": "integer", "minimum": 1, "maximum": 16},
+            "roles": {"$ref": "#/$defs/string_array"},
+            "one_writer": {"const": true},
+            "independent_verifier": {"type": "boolean"},
+            "adversarial_critic": {"type": "boolean"}
+          }
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["budget", "repository_scope", "provider_hard_limit"],
+          "properties": {
+            "budget": {"enum": ["MINIMAL", "FOCUSED", "EXPANDED"]},
+            "repository_scope": {"enum": ["LOCAL", "SUBSYSTEM", "CROSS_CUTTING", "RISK_RELEVANT", "BOUNDED"]},
+            "provider_hard_limit": {"const": false}
+          }
+        },
+        "permissions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tool_scope", "write", "shell", "network", "mcp", "external_writes", "destructive_actions", "dependency_changes"],
+          "properties": {
+            "tool_scope": {"enum": ["READ_ONLY", "TASK_SCOPED", "LEAST_PRIVILEGE"]},
+            "write": {"enum": ["READ_ONLY", "SCOPED_WRITE", "NARROW_SCOPED_WRITE"]},
+            "shell": {"enum": ["DENY", "READ_ONLY", "SCOPED"]},
+            "network": {"enum": ["DENY", "DENY_UNLESS_REQUIRED", "WHEN_REQUIRED"]},
+            "mcp": {"enum": ["DENY", "TASK_SCOPED", "LEAST_PRIVILEGE"]},
+            "external_writes": {"enum": ["DENY", "CONFIRM"]},
+            "destructive_actions": {"enum": ["DENY", "CONFIRM"]},
+            "dependency_changes": {"enum": ["DENY", "CONFIRM"]}
+          }
+        },
+        "verification": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["depth", "runtime", "security", "independent"],
+          "properties": {
+            "depth": {"enum": ["TARGETED", "STANDARD", "DEEP"]},
+            "runtime": {"enum": ["WHEN_RELEVANT", "REQUIRED"]},
+            "security": {"type": "boolean"},
+            "independent": {"type": "boolean"}
+          }
+        },
+        "safety": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["checkpoint", "isolation", "rollback"],
+          "properties": {
+            "checkpoint": {"type": "boolean"},
+            "isolation": {"enum": ["NORMAL", "PREFERRED", "REQUIRED"]},
+            "rollback": {"type": "boolean"}
+          }
+        },
+        "proof": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["depth", "compatibility_depth"],
+          "properties": {
+            "depth": {"enum": ["BRIEF", "STANDARD", "RICH", "HIGH_RISK"]},
+            "compatibility_depth": {"enum": ["FAST", "STANDARD", "DEEP", "HIGH_RISK"]}
+          }
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["max_iterations"],
+          "properties": {"max_iterations": {"type": "integer", "minimum": 1, "maximum": 100}}
+        },
+        "telemetry": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["capture"],
+          "properties": {"capture": {"const": "OBSERVE_WHEN_AVAILABLE"}}
+        }
+      }
+    },
+    "requested_telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_tier", "reasoning", "max_parallel_agents", "max_iterations"],
+      "properties": {
+        "model_tier": {"enum": ["ECONOMY", "BALANCED", "STRONG", "MAXIMUM"]},
+        "reasoning": {"enum": ["LOW", "MEDIUM", "HIGH", "MAXIMUM"]},
+        "max_parallel_agents": {"type": "integer", "minimum": 1, "maximum": 16},
+        "max_iterations": {"type": "integer", "minimum": 1, "maximum": 100}
+      }
+    },
+    "estimated_telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relative_cost", "likely_latency", "override_impact", "broker_compact_bytes", "broker_compact_tokens", "method"],
+      "properties": {
+        "relative_cost": {"enum": ["LOW", "MEDIUM", "HIGH", "VERY_HIGH"]},
+        "likely_latency": {"enum": ["LOW", "MEDIUM", "HIGH", "VERY_HIGH"]},
+        "override_impact": {"$ref": "#/$defs/string_array"},
+        "broker_compact_bytes": {"type": "integer", "minimum": 0},
+        "broker_compact_tokens": {"type": "integer", "minimum": 0},
+        "method": {"const": "utf8-bytes-divided-by-four-ceiling"}
+      }
+    },
+    "effective_control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requested",
+        "platform_support",
+        "availability_state",
+        "state",
+        "origin",
+        "application",
+        "enforcement_status",
+        "detail",
+        "source_ids"
+      ],
+      "properties": {
+        "requested": {},
+        "platform_support": {"$ref": "#/$defs/support"},
+        "availability_state": {"$ref": "#/$defs/support"},
+        "state": {"$ref": "#/$defs/support"},
+        "origin": {"type": "string", "minLength": 1},
+        "application": {"enum": ["UNAVAILABLE", "SUBAGENT_SETTING", "SETTING_AVAILABLE", "UNMAPPED", "WORKFLOW_FALLBACK", "SELECT_AT_USE"]},
+        "enforcement_status": {"enum": ["NOT_APPLIED", "APPLICATION_ATTEMPTED"]},
+        "detail": {"type": "string", "minLength": 1},
+        "source_ids": {"$ref": "#/$defs/string_array"}
+      }
+    },
+    "support": {"enum": ["NATIVE", "PARTIAL", "EMULATED", "UNAVAILABLE"]},
+    "native_setting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["control", "setting", "value", "applies_to", "note"],
+      "properties": {
+        "control": {
+          "enum": [
+            "model_selection",
+            "reasoning_effort",
+            "parallel_agents",
+            "agent_roles",
+            "context_budget",
+            "tool_restriction",
+            "filesystem_scope",
+            "network_restriction",
+            "shell_restriction",
+            "max_iterations",
+            "checkpoints",
+            "execution_isolation",
+            "runtime_browser",
+            "usage_telemetry",
+            "external_write_gating",
+            "mcp_restriction"
+          ]
+        },
+        "setting": {"type": "string", "minLength": 1},
+        "value": {},
+        "applies_to": {"enum": ["launcher", "current_session", "subagent"]},
+        "note": {"type": "string"}
+      }
+    },
+    "application": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "platform", "client", "command_preview", "passthrough_arg_count", "prompt_transport", "local_session_persistence", "settings", "checkpoint_acknowledged"],
+      "properties": {
+        "status": {"enum": ["PLANNED", "CLIENT_SUCCEEDED", "CLIENT_FAILED"]},
+        "platform": {"enum": ["codex", "claude"]},
+        "client": {"type": "string", "minLength": 1},
+        "command_preview": {"type": "array", "items": {"type": "string"}},
+        "passthrough_arg_count": {"type": "integer", "minimum": 0},
+        "prompt_transport": {"const": "stdin"},
+        "local_session_persistence": {"const": "disabled"},
+        "checkpoint_acknowledged": {"type": "boolean"},
+        "settings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["control", "setting", "value", "status"],
+            "properties": {
+              "control": {"type": "string", "minLength": 1},
+              "setting": {"type": "string", "minLength": 1},
+              "value": {},
+              "status": {"enum": ["PLANNED", "SETTINGS_PASSED", "APPLICATION_ATTEMPTED"]}
+            }
+          }
+        },
+        "exit_code": {"type": "integer"}
+      }
+    }
+  }
+}

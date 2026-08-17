@@ -11,6 +11,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from powerkit import broker
 from powerkit.proof import (
     build_proof,
     configured_proof_root,
@@ -774,6 +775,46 @@ class ProofPackTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "proof manifest"):
                 self.build(repo, self.spec(), self.evidence(repo, "passed"), replace=True)
             self.assertEqual(sentinel.read_text(encoding="utf-8"), "preserve me\n")
+
+    def test_proof_can_be_integrity_bound_to_matching_broker_trace(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            repo = self.make_repo(Path(temp))
+            trace_path = Path(".ai-powerkit/traces/proof-policy.json")
+            report = broker.resolve_policy(
+                effort="STANDARD",
+                risk="NORMAL",
+                platform="codex",
+                surface="app",
+            )
+            report["trace"] = {
+                "path": trace_path.as_posix(),
+                "task_id": "policy-bound",
+            }
+            broker.write_trace(repo, trace_path, report)
+            spec = self.spec(task_id="policy-bound")
+            binding = broker.load_trace_binding(
+                repo, trace_path, "STANDARD", "policy-bound"
+            )
+            proof_dir, proof = self.build(
+                repo,
+                spec,
+                self.evidence(repo, "passed"),
+                execution_policy=binding,
+            )
+            self.assertEqual(proof["execution_policy"]["trace_path"], trace_path.as_posix())
+            loaded = load_proof(proof_dir)
+            self.assertEqual(
+                loaded["execution_policy"]["trace_sha256"],
+                proof["execution_policy"]["trace_sha256"],
+            )
+            (repo / trace_path).write_text("{}\n", encoding="utf-8")
+            self.assertEqual(
+                proof_freshness(repo, loaded, proof_dir)["status"], "stale"
+            )
+            forged = self.spec(task_id="forged-policy")
+            forged["execution_policy"] = dict(binding.payload)
+            with self.assertRaisesRegex(RuntimeError, "verified --broker-trace"):
+                self.build(repo, forged, self.evidence(repo, "passed"))
 
     def test_failed_atomic_replacement_restores_the_previous_proof(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

@@ -36,7 +36,15 @@
 - Ranked context recommendations, configurable budgets, release baselines, CI regression protection, and concise doctor integration.
 - Context-audit lifecycle and safety coverage with PowerKit-on-PowerKit dogfooding.
 
-## v0.4
+## v0.4.0
+
+- Independent FAST/STANDARD/DEEP effort and NORMAL/ELEVATED/HIGH risk axes with HIGH_RISK Proof Pack compatibility.
+- Deterministic Execution Broker for resources, permissions, iteration bounds, verification, proof, and cost/latency projections.
+- Versioned Codex, Claude Code, and GitHub Copilot capability negotiation across current-session and launcher control planes.
+- Human, compact, and JSON diagnostics; bounded local version probes; mode-0600 decision traces; Proof Pack binding; Codex/Claude setting application attempts; and fail-closed PROCEED/CHECKPOINT/STOP behavior.
+- Context-budget integration, broker dogfood scenarios, schema and installer/package wiring, and cross-platform contract tests.
+
+## v0.5
 
 - Live routing eval runner for Codex, Claude Code, and Copilot where automation is supported.
 - Recorded behavioral evals with scored assertions.

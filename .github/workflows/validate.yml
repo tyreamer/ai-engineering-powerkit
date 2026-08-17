@@ -30,6 +30,8 @@ jobs:
           python -m pip install --force-reinstall dist/wheels/*.whl
           powerkit --help
           powerkit version
+          wheel_smoke="$(mktemp -d)"
+          (cd "$wheel_smoke" && powerkit broker explain --effort FAST --risk NORMAL --platform codex --surface app --compact)
       - name: Agent onboarding smoke test
         run: |
           consumer="$(mktemp -d)"

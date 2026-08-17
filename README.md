@@ -8,6 +8,8 @@ It gives coding assistants something the model alone does not have:
 
 **a disciplined way to work.**
 
+**PowerKit knows when to spend more.** Small changes stay fast. Hard problems can receive deeper reasoning, focused investigators, broader verification, and stronger proof. High-risk work receives tighter permissions and independent checks instead of merely receiving more compute.
+
 Most coding agents can produce impressive code. They can also start too early, guess when they should inspect, chase the first plausible bug, widen scope without permission, trust their own implementation, and declare victory before the work is actually proven.
 
 PowerKit changes the workflow around the model.
@@ -22,7 +24,8 @@ pk skill
  ├─ understand the request
  ├─ inspect the repository
  ├─ recover existing context
- ├─ choose the right depth
+ ├─ choose effort and risk independently
+ ├─ negotiate real host capabilities
  ├─ preserve your constraints
  ├─ use specialized skills when needed
  ├─ implement within bounds
@@ -51,7 +54,7 @@ Follow BOOTSTRAP.md, preserve existing project configuration,
 verify the installation, and tell me when PowerKit is ready.
 ```
 
-PowerKit v0.3 provides a machine-readable bootstrap contract and deterministic installation tooling so the assistant can configure the repository from a pinned release instead of manually recreating skills and agent files.
+PowerKit v0.4.0 provides a machine-readable bootstrap contract and deterministic installation tooling so the assistant can configure the repository from a pinned release instead of manually recreating skills and agent files.
 
 Once installed, explicitly invoke the `pk` skill and describe the task. Native syntax depends on the host:
 
@@ -102,16 +105,26 @@ A difficult migration should not be treated like a text edit.
 
 A security-sensitive change should receive more scrutiny than either.
 
-PowerKit's workload router defines these execution modes:
+PowerKit classifies two independent axes:
 
 ```text
-FAST             make the bounded change and run targeted validation
-STANDARD         inspect → define bounds → implement → verify → review
-DEEP             investigate → plan → implement → challenge → verify
-HIGH_RISK        add security, compatibility, rollback, and independent proof
+EFFORT: FAST | STANDARD | DEEP
+RISK:   NORMAL | ELEVATED | HIGH
 ```
 
-Parallel read-only investigation can support deep or high-risk work, but overlapping implementation keeps one writer.
+Effort controls resources: model tier, reasoning, context, agents, iterations, and workflow depth. Risk controls permissions, checkpoints, isolation, rollback, verification, and proof. A small security fix can therefore be `FAST × HIGH`; a broad read-only architecture study can be `DEEP × NORMAL`. `HIGH_RISK` remains the public Proof Pack compatibility depth for high-risk work.
+
+The Execution Broker turns that classification into a deterministic desired policy, negotiates it against a versioned Codex, Claude Code, or GitHub Copilot capability contract, and returns `PROCEED`, `CHECKPOINT`, or `STOP`. Native host controls, PowerKit emulation, behavioral guidance, and unavailable enforcement are reported separately—PowerKit does not claim that a prompt changed the active model or sandbox.
+
+```bash
+powerkit broker explain --effort STANDARD --risk ELEVATED --platform codex
+powerkit broker capabilities --platform codex --surface app --probe
+powerkit broker launch --effort STANDARD --risk NORMAL --platform codex --surface cli --dry-run -- "Inspect this subsystem."
+```
+
+The optional broker-owned launcher is intentionally limited to validated local Codex and Claude Code CLI versions. It sends the task over stdin, disables local client session persistence, and records settings as passed or application attempted rather than claiming the remote host acknowledged them. Copilot currently uses capability negotiation only; there is no PowerKit-owned local Copilot launcher.
+
+Parallel read-only investigation can support deep or high-risk work, but overlapping implementation keeps one writer. See [Execution Broker](docs/EXECUTION_BROKER.md).
 
 The explicit `pk` routes currently implemented are:
 
@@ -222,7 +235,7 @@ small always-on metadata
  deeper references only if needed
 ```
 
-The standard v0.3 bootstrap installs all 24 skills so every `pk` mode has its specialist workflows. Installing PowerKit does **not** mean intentionally injecting the entire toolkit into every model request.
+The standard v0.4.0 bootstrap installs all 24 skills so every `pk` mode has its specialist workflows. Installing PowerKit does **not** mean intentionally injecting the entire toolkit into every model request.
 
 A project can have many capabilities available while a small task loads only what it needs. Exact discovery and loading behavior remains host-dependent.
 
@@ -242,7 +255,7 @@ It reports PowerKit-attributable estimates rather than pretending to know total 
 
 # The toolkit
 
-PowerKit v0.3 includes **24 canonical skills** and **6 specialized agent roles**.
+PowerKit v0.4.0 includes **24 canonical skills** and **6 specialized agent roles**.
 
 The skills cover four broad areas:
 
@@ -312,6 +325,8 @@ PowerKit also includes deterministic tooling for:
 * explicitly selected version updates
 * managed-file ownership and content digests
 * repository status and health checks
+* effort × risk policy resolution and capability negotiation
+* versioned platform capability diagnostics and safe execution decisions
 * offline context accounting, recommendations, baselines, and CI budgets
 * static validation
 * release packaging
@@ -348,6 +363,8 @@ Consumer repositories retain PowerKit state under:
 ```
 
 so future sessions can inspect what is desired, what is installed, which version is pinned, and which assets PowerKit can prove it owns.
+
+Projects can also commit an `execution_policy` object that bounds cost, latency, parallelism, model upgrades, network use, high-risk checkpoints, iteration limits, and optional adapter-local model mappings.
 
 This enables a simple lifecycle:
 
@@ -397,7 +414,7 @@ PowerKit modifies coding-assistant configuration and can influence how agents op
 
 That deserves the same care as other engineering tooling.
 
-The v0.3 installer and lifecycle commands are designed around:
+The v0.4.0 installer, lifecycle commands, and Execution Broker are designed around:
 
 * path-containment checks
 * symlink defenses
@@ -408,6 +425,8 @@ The v0.3 installer and lifecycle commands are designed around:
 * dry runs for mutating lifecycle commands
 * digest-aware doctor checks
 * offline context-budget inspection with no consumer-code execution
+* capability states that distinguish native, partial, emulated, and unavailable controls
+* `STOP` decisions when an explicit high-risk boundary cannot be enforced
 * stale-file pruning only when ownership remains proven
 * uninstall that refuses ambiguous or changed assets
 * deterministic package construction from reviewed tracked files
@@ -457,7 +476,7 @@ manifests/          Machine-readable PowerKit distribution metadata
 evals/              Cross-skill routing fixtures
 tests/              Installer, lifecycle, safety, and regression coverage
 tools/              Validation, packaging, legacy install, and verification tools
-schemas/            Versioned machine contracts, including Proof Pack evidence
+schemas/            Versioned machine contracts, including broker and Proof Pack evidence
 docs/               Architecture, security, portability, and operating guidance
 BOOTSTRAP.md         Entry point for coding assistants managing PowerKit
 ```
@@ -466,7 +485,7 @@ BOOTSTRAP.md         Entry point for coding assistants managing PowerKit
 
 # Project status
 
-PowerKit v0.3 is an integration candidate for:
+PowerKit v0.4.0 is an integration candidate for:
 
 * OpenAI Codex
 * Anthropic Claude Code
@@ -476,7 +495,9 @@ Platform capabilities and invocation mechanisms change quickly. PowerKit keeps c
 
 The repository contains structural validation, lifecycle tests, routing fixtures, managed-update tests, packaging tests, and safety regressions. The release is not proven merely because those files exist: acceptance requires a conflict-free tree with the validator and complete test suite passing.
 
-The routing fixtures are statically validated; they are not a live model-routing benchmark. Live skill selection, client invocation, and adapter behavior must still be measured on the supported host versions rather than assumed.
+The broker-owned launch path has been live-validated with Codex `0.147.0-alpha.6.5` and Claude Code `2.1.123`. That proves those validated clients accepted the broker-owned settings and completed the task; it does not prove remote host acknowledgement or every platform surface. Copilot remains documentation-backed rather than locally live-validated.
+
+The generated broker directive is currently about 126–163 estimated tokens. The measured complete selected-path increase is 761–798 estimated tokens, with all modeled paths inside their configured budgets but in the context auditor's `watch` band. The routing fixtures prove deterministic allocation, not that the broker already delivers net token, latency, cost, or outcome improvements; comparative live evaluation remains future work.
 
 ---
 
@@ -484,7 +505,7 @@ The routing fixtures are statically validated; they are not a live model-routing
 
 The next frontier is not more prompts.
 
-It is **proof**.
+It is **measured execution quality across live clients**.
 
 PowerKit is being designed so its behavior can be evaluated against unmodified coding assistants on things that actually matter:
 

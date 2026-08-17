@@ -72,10 +72,14 @@ def read_json_file(path: Path) -> dict[str, Any] | None:
     return payload if isinstance(payload, dict) else None
 
 
-def atomic_write_text(path: Path, value: str) -> None:
+def atomic_write_text(path: Path, value: str, *, mode: int | None = None) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path: Path | None = None
-    mode = path.stat().st_mode & 0o777 if path.is_file() else 0o644
+    destination_mode = (
+        mode
+        if mode is not None
+        else (path.stat().st_mode & 0o777 if path.is_file() else 0o644)
+    )
     try:
         with tempfile.NamedTemporaryFile(
             mode="w",
@@ -89,7 +93,7 @@ def atomic_write_text(path: Path, value: str) -> None:
             handle.flush()
             os.fsync(handle.fileno())
             temporary_path = Path(handle.name)
-        os.chmod(temporary_path, mode)
+        os.chmod(temporary_path, destination_mode)
         os.replace(temporary_path, path)
         temporary_path = None
     finally:

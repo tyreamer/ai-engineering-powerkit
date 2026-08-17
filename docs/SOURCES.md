@@ -1,6 +1,6 @@
 # Primary documentation sources
 
-Platform customization changes quickly. The links below were checked on **2026-08-16** and are the primary references for PowerKit's portable layout and adapters.
+Platform customization changes quickly. The links below were checked through **2026-08-17** and are the primary references for PowerKit's portable layout and adapters. Per-control source IDs are recorded in each `adapters/*/capabilities.json` contract.
 
 ## Agent Skills
 
@@ -31,6 +31,21 @@ Platform customization changes quickly. The links below were checked on **2026-0
 - Codex hooks: https://learn.chatgpt.com/docs/hooks
 - Claude Code hooks: https://code.claude.com/docs/en/hooks-guide
 - Codex and ChatGPT plugins: https://learn.chatgpt.com/docs/plugins
+
+## Execution controls
+
+- Codex configuration: https://learn.chatgpt.com/docs/config-file/config-reference
+- Codex permissions and sandboxing: https://learn.chatgpt.com/docs/permissions
+- Codex approvals and security: https://learn.chatgpt.com/docs/agent-approvals-security
+- Codex browser: https://learn.chatgpt.com/docs/browser
+- Codex App Server: https://learn.chatgpt.com/docs/app-server
+- Claude Code CLI: https://code.claude.com/docs/en/cli-reference
+- Claude Code models: https://code.claude.com/docs/en/model-config
+- Claude Code permissions and sandboxing: https://code.claude.com/docs/en/permissions
+- GitHub Copilot CLI: https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference
+- GitHub Copilot sandboxes: https://docs.github.com/en/copilot/concepts/about-cloud-and-local-sandboxes
+- GitHub Copilot coding-agent firewall: https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/customize-the-agent-firewall
+- GitHub Copilot SDK hooks and telemetry: https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/hooks and https://docs.github.com/en/copilot/how-tos/copilot-sdk/observability/opentelemetry
 
 ## Release rule
 

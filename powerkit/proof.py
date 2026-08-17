@@ -11,6 +11,7 @@ import re
 import shutil
 import tempfile
 import webbrowser
+from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 
@@ -42,6 +43,77 @@ TASK_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]{0,79}$")
 MAX_ARTIFACTS = 100
 MAX_ARTIFACT_BYTES = 25 * 1024 * 1024
 MAX_TOTAL_ARTIFACT_BYTES = 100 * 1024 * 1024
+
+
+@dataclass(frozen=True)
+class VerifiedExecutionPolicy:
+    """Opaque proof input produced only after a broker trace is verified."""
+
+    payload: dict[str, Any]
+
+
+def _validate_execution_policy_binding(
+    binding: dict[str, Any], target: Path | None = None, task_id: str | None = None
+) -> None:
+    required = {
+        "task_id",
+        "repository",
+        "trace_path",
+        "trace_sha256",
+        "requested_effort",
+        "effective_risk",
+        "compatibility_depth",
+        "platform",
+        "surface",
+        "control_plane",
+        "decision",
+        "checkpoint_resolution",
+        "application_status",
+    }
+    if set(binding) != required:
+        raise RuntimeError("Invalid proof manifest execution policy binding fields.")
+    if (
+        not isinstance(binding["task_id"], str)
+        or not TASK_ID_PATTERN.fullmatch(binding["task_id"])
+        or not isinstance(binding["trace_path"], str)
+        or not re.fullmatch(
+            r"\.ai-powerkit/traces/(?:(?!\.\.?/)[A-Za-z0-9._-]+/)*(?!\.\.?$)[A-Za-z0-9._-]+\.json",
+            binding["trace_path"],
+        )
+        or not isinstance(binding["trace_sha256"], str)
+        or not re.fullmatch(r"[a-f0-9]{64}", binding["trace_sha256"])
+        or binding["requested_effort"] not in {"FAST", "STANDARD", "DEEP"}
+        or binding["effective_risk"] not in {"NORMAL", "ELEVATED", "HIGH"}
+        or binding["compatibility_depth"] not in DEPTHS
+        or binding["platform"] not in {"codex", "claude", "copilot"}
+        or not isinstance(binding["surface"], str)
+        or not binding["surface"]
+        or binding["control_plane"] not in {"CURRENT_SESSION", "LAUNCHER"}
+        or binding["decision"] not in {"PROCEED", "CHECKPOINT"}
+        or binding["checkpoint_resolution"] not in {"NOT_REQUIRED", "ACKNOWLEDGED"}
+        or binding["application_status"] not in {None, "CLIENT_SUCCEEDED"}
+        or not isinstance(binding["repository"], dict)
+        or binding["repository"].get("mode") != "git-worktree"
+        or not isinstance(binding["repository"].get("git_commit"), str)
+        or not re.fullmatch(r"[a-fA-F0-9]{40,64}", binding["repository"]["git_commit"])
+        or not isinstance(binding["repository"].get("digest"), str)
+        or not re.fullmatch(r"[a-f0-9]{64}", binding["repository"]["digest"])
+    ):
+        raise RuntimeError("Invalid proof manifest execution policy binding.")
+    if binding["decision"] == "PROCEED" and (
+        binding["checkpoint_resolution"] != "NOT_REQUIRED"
+        or binding["application_status"] is not None
+    ):
+        raise RuntimeError("Invalid PROCEED execution policy resolution.")
+    if binding["decision"] == "CHECKPOINT" and (
+        binding["checkpoint_resolution"] != "ACKNOWLEDGED"
+        or binding["application_status"] != "CLIENT_SUCCEEDED"
+    ):
+        raise RuntimeError("Unresolved checkpoint cannot authorize proof.")
+    if task_id is not None and binding["task_id"] != task_id:
+        raise RuntimeError("Execution policy binding belongs to a different task.")
+    if target is not None and binding["repository"] != repository_fingerprint(target):
+        raise RuntimeError("Execution policy binding belongs to a different repository state.")
 
 
 def utc_now() -> str:
@@ -285,6 +357,22 @@ def proof_freshness(
                     changed.append("independent verifier evidence")
             except RuntimeError:
                 changed.append("independent verifier evidence")
+    execution_policy = proof.get("execution_policy")
+    if isinstance(execution_policy, dict):
+        try:
+            trace_path, _ = safe_project_path(
+                target,
+                execution_policy.get("trace_path"),
+                "broker trace path",
+            )
+            if (
+                trace_path.is_symlink()
+                or not trace_path.is_file()
+                or file_sha256(trace_path) != execution_policy.get("trace_sha256")
+            ):
+                changed.append("broker trace")
+        except RuntimeError:
+            changed.append("broker trace")
     return {
         "status": "stale" if changed else "current",
         "changed_files": changed,
@@ -757,6 +845,19 @@ def render_completion_brief(proof: dict[str, Any]) -> str:
             lines.append(f"• {marker} {record['label']}: {record['status'].replace('_', ' ')}")
     elif outcome["status"] != "IMPLEMENTED":
         lines.extend(["", "Verification", "• No executed checks were available."])
+    policy = proof.get("execution_policy")
+    if isinstance(policy, dict):
+        lines.extend(
+            [
+                "",
+                "Execution policy",
+                f"• {policy['requested_effort']} / {policy['effective_risk']} · "
+                f"{policy['decision'].lower()} "
+                f"({policy['checkpoint_resolution'].lower()}) · "
+                f"application {str(policy['application_status']).lower()} · "
+                f"trace {policy['trace_sha256'][:12]}",
+            ]
+        )
     worth_knowing = list(proof.get("caveats", []))
     if skipped:
         worth_knowing.append(f"{len(skipped)} verification level or check{' was' if len(skipped) == 1 else 's were'} not run.")
@@ -850,6 +951,7 @@ def build_proof(
     replace: bool = False,
     explicit_html: bool = False,
     trust_current_run: bool = False,
+    execution_policy: VerifiedExecutionPolicy | None = None,
 ) -> tuple[Path, dict[str, Any]]:
     from powerkit.proof_render import render_html_report
 
@@ -857,6 +959,20 @@ def build_proof(
     if not target.is_dir():
         raise RuntimeError(f"Target directory does not exist: {target}")
     task = spec["task"]
+    if "execution_policy" in spec:
+        raise RuntimeError(
+            "Execution policy binding must come from a verified --broker-trace, not task-spec input."
+        )
+    execution_policy_payload: dict[str, Any] | None = None
+    if execution_policy is not None:
+        if not isinstance(execution_policy, VerifiedExecutionPolicy):
+            raise RuntimeError(
+                "Execution policy must be a verified broker trace binding object."
+            )
+        execution_policy_payload = dict(execution_policy.payload)
+        _validate_execution_policy_binding(
+            execution_policy_payload, target, task["id"]
+        )
     root = configured_proof_root(target, output_root)
     root.mkdir(parents=True, exist_ok=True)
     if root.is_symlink():
@@ -919,6 +1035,11 @@ def build_proof(
             "verification": verification,
             "verification_evidence": evidence_freshness,
             "source_snapshot": source_snapshot,
+            **(
+                {"execution_policy": execution_policy_payload}
+                if execution_policy_payload
+                else {}
+            ),
             "runtime_evidence": [a for a in artifacts if a["kind"] == "runtime"],
             "visual_evidence": [a for a in artifacts if a["kind"] in {"screenshot", "diagram"}],
             "understand": spec["understand"],
@@ -1112,6 +1233,12 @@ def _validate_proof_manifest(payload: dict[str, Any], proof_dir: Path) -> None:
         raise RuntimeError("Invalid proof manifest modules.")
     if "risk" in payload and not isinstance(payload["risk"], dict):
         raise RuntimeError("Invalid proof manifest risk section.")
+    if "execution_policy" in payload and not isinstance(payload["execution_policy"], dict):
+        raise RuntimeError("Invalid proof manifest execution policy binding.")
+    if isinstance(payload.get("execution_policy"), dict):
+        _validate_execution_policy_binding(
+            payload["execution_policy"], task_id=payload.get("task", {}).get("id")
+        )
     for index, artifact in enumerate(payload["artifacts"]):
         if (
             not isinstance(artifact, dict)

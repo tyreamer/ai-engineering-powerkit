@@ -6,7 +6,11 @@ PowerKit itself must be evaluated. Otherwise it can become a large set of instru
 
 Each skill includes positive and negative cases in `evals/cases.json`.
 
-The `pk` command adds a second layer under `.agents/skills/pk/evals/routing-cases.json`. These cases define expected task intent, workload depth, required and forbidden workflow activations, and preserved user constraints. The validator proves that the cases cover every explicit mode and the required routing categories; it does not claim to execute a live model.
+The `pk` command adds a second layer under `.agents/skills/pk/evals/routing-cases.json`. These cases define expected task intent, independent effort and risk, compatibility depth, required and forbidden workflow activations, and preserved user constraints. The validator proves that the cases cover every explicit mode and the required routing categories; it does not claim to execute a live model.
+
+`evals/execution-broker-cases.json` dogfoods deterministic policy against tiny documentation work, normal implementation, difficult runtime investigation, installer migration, a bounded security guard, read-only architecture analysis, and high-risk authentication migration. Tests compare the material resource, permission, safety, proof, platform, and decision fields recorded by each case with the broker result.
+
+Capability tests are contract tests, not marketing claims. Local `--probe` results record `VERSION_PROBED` client availability only. Behavioral validation and broker-owned launch evidence must separately prove that a documented flag, permission, sandbox, tool, or subagent behavior works on the tested client version.
 
 Review:
 
@@ -44,6 +48,8 @@ Track medians and distributions, not only anecdotes:
 - Review findings per change.
 - Escaped defects.
 - Token or request consumption.
+- Requested model/reasoning/agent policy versus observed host telemetry when available.
+- Broker `PROCEED`, `CHECKPOINT`, and `STOP` rates by surface.
 - Tasks where the user bypassed the toolkit.
 
 ## Quality guardrail

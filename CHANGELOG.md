@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 — 2026-08-17
+
+- Added the deterministic Execution Broker with independent FAST/STANDARD/DEEP effort and NORMAL/ELEVATED/HIGH risk axes while preserving HIGH_RISK Proof Pack compatibility.
+- Added versioned Codex, Claude Code, and GitHub Copilot capability contracts across app, CLI, cloud, IDE, coding-agent, and SDK surfaces, with explicit NATIVE, PARTIAL, EMULATED, and UNAVAILABLE states.
+- Added current-session versus launcher negotiation, portable resource and safety policy, one-writer and independent-review invariants, cost/latency projections, project overrides, and honest PROCEED/CHECKPOINT/STOP decisions.
+- Added `powerkit broker explain|capabilities|launch` with human, compact, and stable JSON output, bounded allowlisted-path version probes, stdin prompt transport, local non-persistence flags, Codex/Claude setting application attempts, content-light mode-0600 traces, and versioned schema integration.
+- Integrity-bound Proof Packs to task-identified compatible broker traces by deterministic replay and SHA-256, made checkpoints return a distinct exit, and fail closed when hard constraints or requested settings cannot be enforced.
+- Integrated broker resolution into `/pk`, effort/risk routing cases, project configuration, the Context Budget Auditor, distribution metadata, packaging, installation tests, and documentation without loading capability matrices into normal prompt context.
+- Added representative broker dogfood cases and deterministic tests for policy, constraints, lifecycle negotiation, schema, CLI exits and formats, trace safety, client probes, context overhead, and cross-platform capability coverage.
+
 ## 0.3.0 — 2026-08-17
 
 - Added PowerKit Proof Pack: adaptive Completion Briefs, versioned local proof manifests, and offline HTML Proof Reports derived from one canonical evidence model.

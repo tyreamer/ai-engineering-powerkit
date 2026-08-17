@@ -9,9 +9,11 @@ import re
 import sys
 import tomllib
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 MANAGED_MARKER = "AI-ENGINEERING-POWERKIT-MANAGED"
 SCAFFOLD_SENTINELS = (
@@ -45,6 +47,14 @@ PK_MODES = {
     "deep",
 }
 PK_DEPTHS = {"FAST", "STANDARD", "DEEP", "HIGH_RISK"}
+PK_EFFORTS = {"FAST", "STANDARD", "DEEP"}
+PK_RISKS = {"NORMAL", "ELEVATED", "HIGH"}
+CAPABILITY_VALIDATION_STATES = {
+    "LIVE_VALIDATED",
+    "STRUCTURALLY_VALIDATED",
+    "SUPPORTED",
+    "UNAVAILABLE",
+}
 PK_ROUTING_CATEGORIES = {
     "tiny_local_change",
     "normal_feature",
@@ -142,6 +152,147 @@ def validate_toml(path: Path, errors: list[str]) -> dict[str, Any] | None:
     except Exception as exc:  # noqa: BLE001
         errors.append(f"{path.relative_to(ROOT)}: invalid TOML: {exc}")
         return None
+
+
+def validate_execution_broker(
+    distribution: Mapping[str, Any] | None,
+    project_template: Mapping[str, Any] | None,
+    errors: list[str],
+) -> None:
+    try:
+        from powerkit.broker import (
+            CAPABILITY_CONTROLS,
+            SUPPORT_STATES,
+            load_capability_manifest,
+            validate_project_policy,
+        )
+    except Exception as exc:  # noqa: BLE001
+        errors.append(f"powerkit/broker.py: unable to load execution broker: {exc}")
+        return
+
+    expected_controls = set(CAPABILITY_CONTROLS)
+    for platform in ("codex", "claude", "copilot"):
+        relative = Path("adapters") / platform / "capabilities.json"
+        try:
+            manifest = load_capability_manifest(platform)
+        except RuntimeError as exc:
+            errors.append(f"{relative}: {exc}")
+            continue
+        if manifest.get("last_verified") is None:
+            errors.append(f"{relative}: last_verified is required")
+        for surface_name, surface in manifest["surfaces"].items():
+            if surface.get("validation") not in CAPABILITY_VALIDATION_STATES:
+                errors.append(f"{relative}: {surface_name} has invalid validation status")
+            if not str(surface.get("validation_detail", "")).strip():
+                errors.append(f"{relative}: {surface_name} validation detail is required")
+            controls = surface.get("controls", {})
+            if set(controls) != expected_controls:
+                errors.append(
+                    f"{relative}: {surface_name} must cover all execution controls"
+                )
+            for control_name, control in controls.items():
+                if control.get("support") not in SUPPORT_STATES:
+                    errors.append(
+                        f"{relative}: {surface_name}.{control_name} has invalid support"
+                    )
+            for translation in surface.get("translations", []):
+                if not isinstance(translation, dict) or translation.get("control") not in expected_controls:
+                    errors.append(
+                        f"{relative}: {surface_name} has an invalid native translation"
+                    )
+
+    schema_path = ROOT / "schemas/execution-broker-v1.schema.json"
+    schema = validate_json(schema_path, errors)
+    if isinstance(schema, dict):
+        required = schema.get("required")
+        expected = {
+            "schema_version",
+            "classification",
+            "inputs",
+            "platform",
+            "desired_policy",
+            "negotiation",
+            "telemetry",
+        }
+        version = schema.get("properties", {}).get("schema_version", {})
+        if version.get("const") != 1 or not isinstance(required, list) or not expected <= set(required):
+            errors.append(
+                "schemas/execution-broker-v1.schema.json has an invalid report contract"
+            )
+
+    policy = distribution.get("execution_policy") if isinstance(distribution, Mapping) else None
+    if not isinstance(policy, Mapping):
+        errors.append("manifests/powerkit.json execution_policy is required")
+    else:
+        try:
+            validate_project_policy(policy)
+        except RuntimeError as exc:
+            errors.append(f"manifests/powerkit.json execution_policy is invalid: {exc}")
+    if isinstance(project_template, Mapping) and project_template.get("execution_policy") != policy:
+        errors.append(
+            "templates/project-config.example.json execution policy must match distribution defaults"
+        )
+
+    cases_path = ROOT / "evals/execution-broker-cases.json"
+    cases_payload = validate_json(cases_path, errors)
+    cases = cases_payload.get("cases") if isinstance(cases_payload, dict) else None
+    if (
+        not isinstance(cases_payload, dict)
+        or cases_payload.get("schema_version") != 1
+        or not isinstance(cases, list)
+        or len(cases) < 7
+    ):
+        errors.append(f"{cases_path.relative_to(ROOT)}: at least seven versioned cases are required")
+    else:
+        seen: set[str] = set()
+        expected_fields = {
+            "model_tier",
+            "reasoning",
+            "max_parallel",
+            "roles",
+            "one_writer",
+            "context_budget",
+            "repository_scope",
+            "write",
+            "shell",
+            "network",
+            "dependency_changes",
+            "checkpoint",
+            "isolation",
+            "max_iterations",
+            "verification",
+            "proof",
+            "compatibility_depth",
+            "decision",
+            "platform",
+            "surface",
+            "control_plane",
+        }
+        for index, case in enumerate(cases):
+            if not isinstance(case, dict):
+                errors.append(f"{cases_path.relative_to(ROOT)}: case {index} must be an object")
+                continue
+            case_id = str(case.get("id", "")).strip()
+            if not case_id or case_id in seen:
+                errors.append(f"{cases_path.relative_to(ROOT)}: duplicate or missing id {case_id!r}")
+            seen.add(case_id)
+            if case.get("effort") not in PK_EFFORTS or case.get("risk") not in PK_RISKS:
+                errors.append(f"{cases_path.relative_to(ROOT)}: {case_id} has invalid effort/risk")
+            for field in ("traits", "constraints"):
+                values = case.get(field)
+                if not isinstance(values, list) or any(not isinstance(value, str) for value in values):
+                    errors.append(f"{cases_path.relative_to(ROOT)}: {case_id} has invalid {field}")
+            expected = case.get("expected")
+            if not isinstance(expected, dict) or set(expected) != expected_fields:
+                errors.append(f"{cases_path.relative_to(ROOT)}: {case_id} expected policy is incomplete")
+
+    broker_source = (ROOT / "powerkit/broker.py").read_text(encoding="utf-8")
+    for model_fragment in ('"gpt-', "'gpt-", '"claude-', "'claude-"):
+        if model_fragment in broker_source:
+            errors.append(
+                "powerkit/broker.py: vendor model identifiers belong in platform adapters"
+            )
+            break
 
 
 def validate_agent_adapters(expected_agents: set[str], errors: list[str]) -> None:
@@ -312,6 +463,7 @@ def validate_pk_command(known_skills: set[str], errors: list[str]) -> None:
         )
     completion = manifest.get("completion")
     proof_reference = command_root / "references/proof-pack.md"
+    broker_reference = command_root / "references/execution-broker.md"
     expected_outputs = {
         "FAST": ["completion-brief"],
         "STANDARD": ["completion-brief", "proof.json"],
@@ -335,6 +487,26 @@ def validate_pk_command(known_skills: set[str], errors: list[str]) -> None:
         encoding="utf-8"
     ):
         errors.append(f"{skill_path.relative_to(ROOT)}: must route completion to proof-pack.md")
+    broker_contract = manifest.get("execution_broker")
+    expected_broker = {
+        "reference": "references/execution-broker.md",
+        "resolve_command": "powerkit broker explain",
+        "capabilities_command": "powerkit broker capabilities",
+        "launch_command": "powerkit broker launch",
+        "effort": ["FAST", "STANDARD", "DEEP"],
+        "risk": ["NORMAL", "ELEVATED", "HIGH"],
+        "high_risk_compatibility_depth": "HIGH_RISK",
+    }
+    if broker_contract != expected_broker:
+        errors.append(f"{manifest_path.relative_to(ROOT)}: execution broker contract is invalid")
+    if not broker_reference.is_file():
+        errors.append(f"{broker_reference.relative_to(ROOT)}: execution broker reference is missing")
+    elif skill_path.is_file():
+        skill_text = skill_path.read_text(encoding="utf-8")
+        if "powerkit broker explain" not in skill_text or "references/execution-broker.md" not in skill_text:
+            errors.append(
+                f"{skill_path.relative_to(ROOT)}: must invoke and progressively disclose the broker"
+            )
 
     modes = manifest.get("modes")
     if not isinstance(modes, dict) or set(modes) != PK_MODES:
@@ -485,6 +657,10 @@ def validate_pk_command(known_skills: set[str], errors: list[str]) -> None:
             errors.append(f"{cases_path.relative_to(ROOT)}: {case_id} has invalid command_mode")
         if case.get("expected_depth") not in PK_DEPTHS:
             errors.append(f"{cases_path.relative_to(ROOT)}: {case_id} has invalid expected_depth")
+        if case.get("expected_effort") not in PK_EFFORTS:
+            errors.append(f"{cases_path.relative_to(ROOT)}: {case_id} has invalid expected_effort")
+        if case.get("expected_risk") not in PK_RISKS:
+            errors.append(f"{cases_path.relative_to(ROOT)}: {case_id} has invalid expected_risk")
         if not str(case.get("expected_intent", "")).strip():
             errors.append(f"{cases_path.relative_to(ROOT)}: {case_id} expected_intent is required")
         deterministic_command = case.get("deterministic_command")
@@ -622,11 +798,17 @@ def main() -> int:
         commands = distribution.get("commands")
         if not isinstance(commands, dict) or commands.get("proof") != "powerkit proof":
             errors.append("manifests/powerkit.json must expose the proof command")
+        if not isinstance(commands, dict) or commands.get("broker") != "powerkit broker":
+            errors.append("manifests/powerkit.json must expose the broker command")
         schemas = distribution.get("schemas")
         if not isinstance(schemas, dict) or schemas.get("proof_manifest") != (
             "schemas/proof-manifest.schema.json"
         ):
             errors.append("manifests/powerkit.json must expose the proof manifest schema")
+        if not isinstance(schemas, dict) or schemas.get("execution_broker") != (
+            "schemas/execution-broker-v1.schema.json"
+        ):
+            errors.append("manifests/powerkit.json must expose the execution broker schema")
         for relative in ("bootstrap",):
             target = distribution.get(relative)
             if isinstance(target, str) and not (ROOT / target).is_file():
@@ -674,6 +856,12 @@ def main() -> int:
             errors.append(
                 "templates/project-config.example.json proof output must be .ai-powerkit/proofs"
             )
+
+    validate_execution_broker(
+        distribution if isinstance(distribution, Mapping) else None,
+        project_template if isinstance(project_template, Mapping) else None,
+        errors,
+    )
 
     proof_schema_path = ROOT / "schemas/proof-manifest.schema.json"
     proof_schema = validate_json(proof_schema_path, errors)

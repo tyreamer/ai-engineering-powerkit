@@ -1,0 +1,471 @@
+{
+  "schema_version": 1,
+  "platform": "codex",
+  "display_name": "Codex",
+  "last_verified": "2026-08-17",
+  "validated_client_versions": ["0.147.0-alpha.6.5"],
+  "default_surface": "app",
+  "sources": {
+    "config": {
+      "title": "Codex configuration reference",
+      "url": "https://learn.chatgpt.com/docs/config-file/config-reference"
+    },
+    "subagents": {
+      "title": "Codex subagents",
+      "url": "https://learn.chatgpt.com/docs/agent-configuration/subagents"
+    },
+    "security": {
+      "title": "Codex agent approvals and security",
+      "url": "https://learn.chatgpt.com/docs/agent-approvals-security"
+    },
+    "permissions": {
+      "title": "Codex permission profiles",
+      "url": "https://learn.chatgpt.com/docs/permissions"
+    },
+    "browser": {
+      "title": "Codex browser",
+      "url": "https://learn.chatgpt.com/docs/browser"
+    },
+    "app_server": {
+      "title": "Codex App Server",
+      "url": "https://learn.chatgpt.com/docs/app-server"
+    }
+  },
+  "defaults": {
+    "validation": "SUPPORTED",
+    "controls": {
+      "model_selection": {
+        "support": "NATIVE",
+        "summary": "Native for new root turns and subagents; an active root model cannot be changed retroactively.",
+        "source_ids": ["config", "subagents", "app_server"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_subagent",
+          "detail": "Subagent models can be selected, but the active root turn keeps its model."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_session",
+          "detail": "The launcher, CLI, or App Server can select the model for a new turn."
+        }
+      },
+      "reasoning_effort": {
+        "support": "NATIVE",
+        "summary": "Native for supported models at new-turn or subagent launch; accepted values are surface/model dependent.",
+        "source_ids": ["config", "subagents", "app_server"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_subagent",
+          "detail": "Subagent effort can be selected, while root-turn effort remains fixed."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_session",
+          "detail": "A new turn can receive model_reasoning_effort or an App Server effort value."
+        }
+      },
+      "parallel_agents": {
+        "support": "NATIVE",
+        "summary": "Native subagent workflows with a configurable concurrent-thread cap.",
+        "source_ids": ["config", "subagents"],
+        "current_session": {
+          "state": "NATIVE",
+          "origin": "native_subagent",
+          "detail": "The active session can spawn a bounded number of parallel subagents."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_profile",
+          "detail": "Session configuration can cap open spawned-agent threads."
+        }
+      },
+      "agent_roles": {
+        "support": "NATIVE",
+        "summary": "Custom agents can carry distinct instructions, model, effort, sandbox, MCP, and skills.",
+        "source_ids": ["config", "subagents"],
+        "current_session": {
+          "state": "NATIVE",
+          "origin": "native_subagent",
+          "detail": "Configured project roles can be selected for spawned agents."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_profile",
+          "detail": "A launcher can provide role-specific agent configuration files."
+        }
+      },
+      "context_budget": {
+        "support": "PARTIAL",
+        "summary": "Compaction and instruction-size controls exist, but no stable per-task repository-context hard cap exists.",
+        "source_ids": ["config", "app_server"],
+        "current_session": {
+          "state": "EMULATED",
+          "origin": "behavioral",
+          "detail": "PowerKit can scope reads and summaries but cannot hard-cap the provider context."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "A launcher can tune compaction/context settings while PowerKit scopes repository reads."
+        }
+      },
+      "tool_restriction": {
+        "support": "PARTIAL",
+        "summary": "MCP/apps and several built-ins are configurable; hooks do not cover every hosted tool.",
+        "source_ids": ["config", "security"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "hook_guard",
+          "detail": "Trusted hooks and configured tool policies cover many local calls, not every transport."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_profile",
+          "detail": "Launch configuration can restrict coarse tools, MCP, and apps, but not through one universal allowlist."
+        }
+      },
+      "filesystem_scope": {
+        "support": "NATIVE",
+        "summary": "Local sandboxes and beta permission profiles can enforce read/write/deny path scopes.",
+        "source_ids": ["config", "permissions", "security"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "behavioral",
+          "detail": "An active turn cannot tighten its root sandbox; subagents can use stricter role sandboxes."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_profile",
+          "detail": "A launcher can select read-only, workspace-write, or a fine-grained permission profile."
+        }
+      },
+      "network_restriction": {
+        "support": "PARTIAL",
+        "summary": "Command-network controls do not automatically cover web search, apps, MCP, browser, or model traffic.",
+        "source_ids": ["config", "permissions", "security"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "behavioral",
+          "detail": "PowerKit must account for each network transport; the active root boundary cannot be tightened globally."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_profile",
+          "detail": "Command networking and several other transports can be disabled separately, but no single global switch covers all."
+        }
+      },
+      "shell_restriction": {
+        "support": "NATIVE",
+        "summary": "The shell tool and login-shell behavior are configurable; command rules can add prefix-level policy.",
+        "source_ids": ["config", "security"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "hook_guard",
+          "detail": "A trusted hook can block many shell calls, but active tool availability is already established."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_profile",
+          "detail": "Launch configuration can disable the shell tool or restrict it with policy."
+        }
+      },
+      "max_iterations": {
+        "support": "EMULATED",
+        "summary": "No stable Codex-client maximum-turn setting is documented.",
+        "source_ids": ["app_server"],
+        "current_session": {
+          "state": "EMULATED",
+          "origin": "behavioral",
+          "detail": "PowerKit can count phases but cannot hard-stop the active client after N turns."
+        },
+        "launcher": {
+          "state": "EMULATED",
+          "origin": "outer_harness",
+          "detail": "An outer harness can interrupt or time-bound execution."
+        }
+      },
+      "checkpoints": {
+        "support": "PARTIAL",
+        "summary": "Approval policies and tool gates are native; semantic phase checkpoints need workflow or hook translation.",
+        "source_ids": ["config", "security"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "hook_guard",
+          "detail": "Human checkpoints work, but they are native only when tied to a concrete gated command or tool."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_profile",
+          "detail": "Launch approval policy can gate actions; architecture milestones still require outer workflow coordination."
+        }
+      },
+      "execution_isolation": {
+        "support": "PARTIAL",
+        "summary": "OS sandboxes and app worktrees exist, but worktrees are not security sandboxes.",
+        "source_ids": ["permissions", "security"],
+        "current_session": {
+          "state": "UNAVAILABLE",
+          "origin": "unavailable",
+          "detail": "A running root turn cannot be moved retroactively into a fresh worktree or sandbox."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "The app can launch a managed worktree and sandbox, without isolating secrets, processes, or all network paths."
+        }
+      },
+      "runtime_browser": {
+        "support": "PARTIAL",
+        "summary": "Shell tests are broadly available; built-in browser and Computer Use are app-specific and permissioned.",
+        "source_ids": ["browser"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "The desktop app can use an installed/authorized browser capability; otherwise only shell tests are native."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "Browser availability depends on the app surface, plugin, and site permissions."
+        }
+      },
+      "usage_telemetry": {
+        "support": "PARTIAL",
+        "summary": "JSON/App Server token usage and opt-in OpenTelemetry expose observed metrics on supported paths.",
+        "source_ids": ["config", "app_server"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "Capture observed usage only when the current host emits it."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "A launcher can capture JSON/App Server/OTel events; cost remains estimated."
+        }
+      },
+      "external_write_gating": {
+        "support": "PARTIAL",
+        "summary": "Apps and MCP tools expose write/destructive approvals, but local and external writes have separate control planes.",
+        "source_ids": ["config", "security"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "Configured app/MCP approval modes can gate known writes; PowerKit still needs a human authorization invariant."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_profile",
+          "detail": "Per-app/per-tool approval settings cover declared tools, not arbitrary external side effects."
+        }
+      },
+      "mcp_restriction": {
+        "support": "NATIVE",
+        "summary": "MCP servers and enabled/disabled tools can be controlled explicitly.",
+        "source_ids": ["config"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "The active session uses its already-loaded MCP policy; PowerKit can choose not to invoke exposed tools."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_profile",
+          "detail": "Launch configuration can enable/disable MCP servers and tools."
+        }
+      }
+    },
+    "translations": [
+      {
+        "control": "model_selection",
+        "setting": "model",
+        "applies_to": "LAUNCHER",
+        "values": {
+          "ECONOMY": "gpt-5.6-terra",
+          "BALANCED": "gpt-5.6",
+          "STRONG": "gpt-5.6",
+          "MAXIMUM": "gpt-5.6"
+        },
+        "note": "Vendor model names are adapter data and require active-surface availability."
+      },
+      {
+        "control": "model_selection",
+        "setting": "agents.default_subagent_model",
+        "applies_to": "SUBAGENT",
+        "values": {
+          "ECONOMY": "gpt-5.6-terra",
+          "BALANCED": "gpt-5.6",
+          "STRONG": "gpt-5.6",
+          "MAXIMUM": "gpt-5.6"
+        },
+        "note": "May be overridden by an explicit spawn model."
+      },
+      {
+        "control": "reasoning_effort",
+        "setting": "model_reasoning_effort",
+        "applies_to": "LAUNCHER",
+        "values": {
+          "LOW": "low",
+          "MEDIUM": "medium",
+          "HIGH": "high",
+          "MAXIMUM": "xhigh"
+        }
+      },
+      {
+        "control": "reasoning_effort",
+        "setting": "agents.default_subagent_reasoning_effort",
+        "applies_to": "SUBAGENT",
+        "values": {
+          "LOW": "low",
+          "MEDIUM": "medium",
+          "HIGH": "high",
+          "MAXIMUM": "xhigh"
+        }
+      },
+      {
+        "control": "parallel_agents",
+        "setting": "agents.max_concurrent_threads_per_session",
+        "applies_to": "LAUNCHER"
+      },
+      {
+        "control": "filesystem_scope",
+        "setting": "sandbox_mode",
+        "applies_to": "LAUNCHER",
+        "values": {
+          "READ_ONLY": "read-only",
+          "SCOPED_WRITE": "workspace-write"
+        },
+        "note": "NARROW_SCOPED_WRITE requires a separately defined permission profile."
+      },
+      {
+        "control": "shell_restriction",
+        "setting": "features.shell_tool",
+        "applies_to": "LAUNCHER",
+        "values": {
+          "DENY": false
+        }
+      },
+      {
+        "control": "mcp_restriction",
+        "setting": "mcp_servers",
+        "applies_to": "LAUNCHER",
+        "values": {
+          "DENY": {}
+        },
+        "note": "An empty launch override disables configured MCP servers for this broker-owned invocation."
+      }
+    ]
+  },
+  "surfaces": {
+    "app": {
+      "label": "desktop app",
+      "validation": "STRUCTURALLY_VALIDATED",
+      "validation_detail": "The active desktop environment and bundled client version 0.147.0-alpha.6.5 were identified on 2026-08-17; no app-surface control invocation was exercised."
+    },
+    "cli": {
+      "label": "local CLI / IDE",
+      "validation": "LIVE_VALIDATED",
+      "validation_detail": "A broker-owned stdin/ephemeral invocation on bundled client 0.147.0-alpha.6.5 passed gpt-5.6-terra, low reasoning, one-agent cap, read-only sandbox, disabled shell tool, and empty MCP configuration, then returned the expected response on 2026-08-17; this validates that combination, not every control row.",
+      "controls": {
+        "execution_isolation": {
+          "support": "PARTIAL",
+          "summary": "OS sandboxing is native; Git worktree creation is external to the CLI task.",
+          "source_ids": ["permissions", "security"],
+          "current_session": {
+            "state": "UNAVAILABLE",
+            "origin": "unavailable",
+            "detail": "A running CLI root turn cannot be retroactively isolated."
+          },
+          "launcher": {
+            "state": "PARTIAL",
+            "origin": "outer_harness",
+            "detail": "A launcher can create a Git worktree and select a native sandbox separately."
+          }
+        },
+        "runtime_browser": {
+          "support": "PARTIAL",
+          "summary": "Shell-based tests are native; built-in browser and Computer Use are not CLI capabilities.",
+          "source_ids": ["browser"],
+          "current_session": {
+            "state": "PARTIAL",
+            "origin": "native_session",
+            "detail": "Runtime commands work; browser testing requires an explicit MCP or test runner."
+          },
+          "launcher": {
+            "state": "PARTIAL",
+            "origin": "outer_harness",
+            "detail": "A launcher can attach an explicit browser MCP/test runner, not the app browser."
+          }
+        }
+      }
+    },
+    "cloud": {
+      "label": "Codex cloud",
+      "validation": "SUPPORTED",
+      "validation_detail": "Documentation-backed only in this release; no separate hosted cloud task was launched.",
+      "controls": {
+        "model_selection": {
+          "support": "UNAVAILABLE",
+          "summary": "Current cloud chats do not expose broker-controlled model selection.",
+          "source_ids": ["app_server"],
+          "current_session": {
+            "state": "UNAVAILABLE",
+            "origin": "unavailable",
+            "detail": "The active cloud task model is host-selected."
+          },
+          "launcher": {
+            "state": "UNAVAILABLE",
+            "origin": "unavailable",
+            "detail": "No documented cloud-task model selector is exposed to PowerKit."
+          }
+        },
+        "reasoning_effort": {
+          "support": "PARTIAL",
+          "summary": "The host may expose intelligence controls, but PowerKit cannot assume a portable cloud effort setting.",
+          "source_ids": ["subagents"],
+          "current_session": {
+            "state": "EMULATED",
+            "origin": "behavioral",
+            "detail": "PowerKit can request deeper behavior but cannot read back or enforce cloud effort."
+          },
+          "launcher": {
+            "state": "EMULATED",
+            "origin": "behavioral",
+            "detail": "No portable launcher effort contract is documented for Codex cloud."
+          }
+        },
+        "execution_isolation": {
+          "support": "NATIVE",
+          "summary": "Cloud tasks run in isolated hosted containers.",
+          "source_ids": ["security"],
+          "current_session": {
+            "state": "NATIVE",
+            "origin": "native_session",
+            "detail": "The cloud task already runs in a hosted isolated environment."
+          },
+          "launcher": {
+            "state": "NATIVE",
+            "origin": "native_session",
+            "detail": "Cloud task launch provides hosted environment isolation."
+          }
+        },
+        "runtime_browser": {
+          "support": "UNAVAILABLE",
+          "summary": "The desktop app browser capability is not a Codex cloud-task contract.",
+          "source_ids": ["browser"],
+          "current_session": {
+            "state": "UNAVAILABLE",
+            "origin": "unavailable",
+            "detail": "Use shell tests or an explicitly configured external browser tool."
+          },
+          "launcher": {
+            "state": "UNAVAILABLE",
+            "origin": "unavailable",
+            "detail": "No built-in cloud browser guarantee is documented."
+          }
+        }
+      },
+      "translations": []
+    }
+  }
+}

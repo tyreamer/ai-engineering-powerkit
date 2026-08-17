@@ -8,6 +8,25 @@ import sys
 from pathlib import Path
 from typing import Any, Sequence
 
+from powerkit.broker import (
+    CONSTRAINTS,
+    CONTROL_PLANES,
+    EFFORTS,
+    RISKS,
+    TASK_TRAITS,
+    build_launch_plan,
+    capability_report,
+    configured_execution_policy,
+    execute_launch,
+    inspect_launcher_client,
+    load_trace_binding,
+    public_launch_plan,
+    render_capability_report,
+    render_compact_policy,
+    render_explanation,
+    resolve_policy,
+    write_trace,
+)
 from powerkit.context_budget import (
     DEFAULT_BASELINE_PATH,
     audit_context,
@@ -421,6 +440,170 @@ def command_version(args: argparse.Namespace) -> int:
     return 0
 
 
+def broker_platforms(values: Sequence[str] | None) -> tuple[str, ...]:
+    raw: list[str] = []
+    for value in values or ("codex,claude,copilot",):
+        raw.extend(comma_values(value))
+    normalized = tuple(dict.fromkeys(value.lower() for value in raw))
+    unknown = sorted(set(normalized) - {"codex", "claude", "copilot"})
+    if unknown:
+        raise RuntimeError("Unknown broker platforms: " + ", ".join(unknown))
+    return normalized
+
+
+def broker_surface_filters(
+    values: Sequence[str] | None, platforms: Sequence[str]
+) -> dict[str, tuple[str, ...]] | None:
+    if not values:
+        return None
+    filters: dict[str, list[str]] = {platform: [] for platform in platforms}
+    for raw in values:
+        if ":" in raw:
+            platform, surface = raw.split(":", 1)
+            platform = platform.strip().lower()
+        elif len(platforms) == 1:
+            platform, surface = platforms[0], raw
+        else:
+            raise RuntimeError(
+                "Broker surfaces must use platform:surface when more than one platform is selected."
+            )
+        if platform not in filters or not surface.strip():
+            raise RuntimeError(f"Invalid broker surface selector: {raw!r}")
+        filters[platform].append(surface.strip())
+    return {platform: tuple(surfaces) for platform, surfaces in filters.items() if surfaces}
+
+
+def command_broker_capabilities(args: argparse.Namespace) -> int:
+    platforms = broker_platforms(args.platform)
+    report = capability_report(
+        platforms,
+        surface_filters=broker_surface_filters(args.surface, platforms),
+        probe=bool(args.probe),
+    )
+    if args.json:
+        print(json.dumps(report, indent=2))
+    else:
+        print(render_capability_report(report), end="")
+    return 0
+
+
+def command_broker_explain(args: argparse.Namespace) -> int:
+    target = target_path(args.target)
+    report = resolve_policy(
+        effort=args.effort,
+        risk=args.risk,
+        platform=args.platform,
+        surface=args.surface,
+        control_plane=args.control_plane,
+        constraints=args.constraint or (),
+        traits=args.trait or (),
+        project_policy=configured_execution_policy(target),
+        reasons=args.reason or (),
+        client_version=args.client_version,
+    )
+    if args.trace:
+        if not args.task_id:
+            raise RuntimeError("Broker traces require --task-id.")
+        report["trace"] = {
+            "path": args.trace.as_posix(),
+            "task_id": args.task_id,
+        }
+        write_trace(target, args.trace, report)
+    if args.json:
+        print(json.dumps(report, indent=2))
+    elif args.compact:
+        print(render_compact_policy(report), end="")
+    else:
+        print(render_explanation(report), end="")
+        if args.trace:
+            print(f"Broker trace: {report['trace']['path']}")
+    return {"STOP": 3, "CHECKPOINT": 4}.get(report["negotiation"]["decision"], 0)
+
+
+def command_broker_launch(args: argparse.Namespace) -> int:
+    target = target_path(args.target)
+    selected_surface = args.surface or "cli"
+    if selected_surface != "cli":
+        raise RuntimeError("Local broker launch requires --surface cli.")
+    resolution_inputs = {
+        "effort": args.effort,
+        "risk": args.risk,
+        "platform": args.platform,
+        "surface": selected_surface,
+        "control_plane": "LAUNCHER",
+        "constraints": args.constraint or (),
+        "traits": args.trait or (),
+        "project_policy": configured_execution_policy(target),
+        "reasons": args.reason or (),
+    }
+    report = resolve_policy(**resolution_inputs)
+    if report["negotiation"]["decision"] == "STOP":
+        print(render_explanation(report), end="")
+        return 3
+    client_path, client_version = inspect_launcher_client(
+        args.platform, target, args.client
+    )
+    report = resolve_policy(
+        **resolution_inputs,
+        client_version=client_version,
+    )
+    decision = report["negotiation"]["decision"]
+    if decision == "STOP":
+        print(render_explanation(report), end="")
+        return 3
+    if decision == "CHECKPOINT" and not args.ack_checkpoint and not args.dry_run:
+        print(render_explanation(report), end="")
+        return 4
+    client_args = list(args.client_args or ())
+    if client_args[:1] == ["--"]:
+        client_args = client_args[1:]
+    plan = build_launch_plan(
+        report,
+        target,
+        client_args,
+        client=client_path,
+        checkpoint_acknowledged=bool(args.ack_checkpoint),
+    )
+    if args.dry_run:
+        report["application"] = public_launch_plan(plan)
+        if args.trace:
+            if not args.task_id:
+                raise RuntimeError("Broker traces require --task-id.")
+            report["trace"] = {
+                "path": args.trace.as_posix(),
+                "task_id": args.task_id,
+            }
+            write_trace(target, args.trace, report)
+        print(json.dumps(report, indent=2) if args.json else json.dumps(report["application"], indent=2))
+        return 0
+    exit_code = execute_launch(plan, target)
+    application_status = "CLIENT_SUCCEEDED" if exit_code == 0 else "CLIENT_FAILED"
+    settings_status = "SETTINGS_PASSED" if exit_code == 0 else "APPLICATION_ATTEMPTED"
+    report["application"] = public_launch_plan(
+        plan,
+        status=application_status,
+        settings_status=settings_status,
+    )
+    report["application"]["exit_code"] = exit_code
+    for item in report["application"]["settings"]:
+        report["negotiation"]["controls"][item["control"]]["enforcement_status"] = (
+            "APPLICATION_ATTEMPTED"
+        )
+    if args.trace:
+        if not args.task_id:
+            raise RuntimeError("Broker traces require --task-id.")
+        report["trace"] = {
+            "path": args.trace.as_posix(),
+            "task_id": args.task_id,
+        }
+        write_trace(target, args.trace, report)
+    if args.json:
+        print(json.dumps(report, indent=2))
+    else:
+        print(f"Broker launch status: {application_status}; client exit: {exit_code}")
+    return exit_code
+
+
 def proof_levels(depth: str, explicit: str | None) -> tuple[str, ...]:
     if explicit:
         return tuple(item.strip() for item in explicit.split(",") if item.strip())
@@ -462,6 +645,14 @@ def command_proof_create(args: argparse.Namespace) -> int:
     target = target_path(args.target)
     spec_path = args.input if args.input.is_absolute() else target / args.input
     spec = load_task_spec(spec_path)
+    execution_policy = None
+    if args.broker_trace:
+        execution_policy = load_trace_binding(
+            target,
+            args.broker_trace,
+            spec["task"]["depth"],
+            spec["task"]["id"],
+        )
     root = configured_proof_root(target, args.output)
     levels = proof_levels(spec["task"]["depth"], args.levels)
     verification_exit = 0
@@ -498,6 +689,7 @@ def command_proof_create(args: argparse.Namespace) -> int:
         replace=args.replace,
         explicit_html=args.html,
         trust_current_run=trust_current_run,
+        execution_policy=execution_policy,
     )
     print()
     print(render_completion_brief(proof), end="")
@@ -699,6 +891,107 @@ def build_parser() -> argparse.ArgumentParser:
     version = subparsers.add_parser("version", help="Print the running distribution version")
     version.set_defaults(handler=command_version)
 
+    broker = subparsers.add_parser(
+        "broker",
+        help="Resolve execution policy and inspect platform capabilities",
+    )
+    broker_commands = broker.add_subparsers(dest="broker_command", required=True)
+    capabilities = broker_commands.add_parser(
+        "capabilities",
+        help="Show documented platform capability contracts",
+    )
+    capabilities.add_argument(
+        "--platform",
+        action="append",
+        help="codex, claude, copilot, or a comma-separated list (default: all)",
+    )
+    capabilities.add_argument(
+        "--surface",
+        action="append",
+        help="surface or platform:surface; repeat for multiple surfaces",
+    )
+    capabilities.add_argument(
+        "--probe",
+        action="store_true",
+        help="Actively run bounded version commands from allowlisted local client paths",
+    )
+    capabilities.add_argument("--json", action="store_true", help="Print stable JSON")
+    capabilities.set_defaults(handler=command_broker_capabilities)
+
+    explain = broker_commands.add_parser(
+        "explain",
+        help="Resolve desired and effective execution policy from router output",
+    )
+    add_target(explain)
+    explain.add_argument("--effort", required=True, choices=EFFORTS)
+    explain.add_argument("--risk", required=True, choices=RISKS)
+    explain.add_argument(
+        "--platform", required=True, choices=("codex", "claude", "copilot")
+    )
+    explain.add_argument("--surface")
+    explain.add_argument(
+        "--control-plane",
+        default="CURRENT_SESSION",
+        choices=CONTROL_PLANES,
+        help="CURRENT_SESSION for $pk, LAUNCHER when starting a new host task",
+    )
+    explain.add_argument(
+        "--constraint",
+        action="append",
+        choices=CONSTRAINTS,
+        help="Explicit user constraint; repeat as needed",
+    )
+    explain.add_argument(
+        "--trait",
+        action="append",
+        choices=TASK_TRAITS,
+        help="Risk/work trait selected by the workload router; repeat as needed",
+    )
+    explain.add_argument(
+        "--reason",
+        action="append",
+        help="Human-readable routing reason; repeat as needed",
+    )
+    explain.add_argument(
+        "--client-version",
+        help="Known client version; unvalidated versions degrade to behavioral fallback",
+    )
+    output = explain.add_mutually_exclusive_group()
+    output.add_argument("--json", action="store_true", help="Print stable JSON")
+    output.add_argument("--compact", action="store_true", help="Print the small agent directive")
+    explain.add_argument(
+        "--trace",
+        type=Path,
+        help="Write JSON under .ai-powerkit/traces/",
+    )
+    explain.add_argument("--task-id", help="Proof task identity recorded in --trace")
+    explain.set_defaults(handler=command_broker_explain)
+
+    launch = broker_commands.add_parser(
+        "launch",
+        help="Resolve policy, pass supported settings, and start an allowlisted local client",
+    )
+    add_target(launch)
+    launch.add_argument("--effort", required=True, choices=EFFORTS)
+    launch.add_argument("--risk", required=True, choices=RISKS)
+    launch.add_argument("--platform", required=True, choices=("codex", "claude"))
+    launch.add_argument("--surface")
+    launch.add_argument("--constraint", action="append", choices=CONSTRAINTS)
+    launch.add_argument("--trait", action="append", choices=TASK_TRAITS)
+    launch.add_argument("--reason", action="append")
+    launch.add_argument("--client", type=Path, help="Absolute trusted client executable")
+    launch.add_argument("--ack-checkpoint", action="store_true")
+    launch.add_argument("--dry-run", action="store_true")
+    launch.add_argument("--json", action="store_true")
+    launch.add_argument("--trace", type=Path)
+    launch.add_argument("--task-id", help="Proof task identity recorded in --trace")
+    launch.add_argument(
+        "client_args",
+        nargs=argparse.REMAINDER,
+        help="Client arguments after --; broker-controlled flags are rejected",
+    )
+    launch.set_defaults(handler=command_broker_launch)
+
     proof = subparsers.add_parser("proof", help="Create and inspect local completion proof")
     proof_subparsers = proof.add_subparsers(dest="proof_command", required=True)
 
@@ -718,6 +1011,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Stream trusted verification command output to the terminal",
     )
     proof_create.add_argument("--evidence", type=Path, help="Previously recorded execution evidence")
+    proof_create.add_argument(
+        "--broker-trace",
+        type=Path,
+        help="Bind the proof to a compatible trace under .ai-powerkit/traces/",
+    )
     proof_create.add_argument("--html", action="store_true", help="Generate HTML for STANDARD work")
     proof_create.add_argument("--replace", action="store_true")
     proof_create.add_argument("--output", type=Path)
@@ -788,5 +1086,5 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         return int(args.handler(args))
     except RuntimeError as exc:
-        print(f"error: {exc}", file=sys.stderr)
+        print(f"error: {safe_terminal_text(str(exc))}", file=sys.stderr)
         return 2

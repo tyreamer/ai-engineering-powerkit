@@ -396,6 +396,15 @@ def render_raw_evidence(proof: dict[str, Any]) -> str:
     snapshot = proof.get("source_snapshot", {})
     if isinstance(snapshot, dict):
         body += f'<p class="digest">Source snapshot: <code>{e(snapshot.get("digest", "Unavailable"))}</code></p>'
+    policy = proof.get("execution_policy", {})
+    if isinstance(policy, dict) and policy:
+        body += (
+            '<h3>Execution policy</h3>'
+            f'<p>{e(policy.get("requested_effort"))} / {e(policy.get("effective_risk"))} · '
+            f'{e(policy.get("decision"))} · checkpoint {e(policy.get("checkpoint_resolution"))} · '
+            f'application {e(policy.get("application_status") or "not required")}</p>'
+            f'<p class="digest">Broker trace: <code>{e(policy.get("trace_sha256"))}</code></p>'
+        )
     return section(
         "Evidence",
         f'<details><summary>Show files, artifacts, and source snapshot</summary><div class="details-body">{body}</div></details>' if body else "",

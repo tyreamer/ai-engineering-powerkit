@@ -2,11 +2,11 @@
   "schema_version": 1,
   "project_name": "replace-me",
   "powerkit": {
-    "version": "0.3.0",
+    "version": "0.4.0",
     "source": {
       "repository": "https://github.com/tyreamer/ai-engineering-powerkit",
-      "version": "0.3.0",
-      "ref": "v0.3.0"
+      "version": "0.4.0",
+      "ref": "v0.4.0"
     },
     "profiles": ["all"],
     "platforms": ["codex"],
@@ -31,6 +31,20 @@
   },
   "proof": {
     "output_directory": ".ai-powerkit/proofs"
+  },
+  "execution_policy": {
+    "cost_preference": "BALANCED",
+    "latency_preference": "BALANCED",
+    "max_parallel_agents": 4,
+    "allow_model_upgrade": true,
+    "allow_network": "WHEN_REQUIRED",
+    "high_risk_requires_checkpoint": true,
+    "iteration_limits": {
+      "FAST": 4,
+      "STANDARD": 8,
+      "DEEP": 16
+    },
+    "adapter_overrides": {}
   },
   "policy": {
     "ask_before_new_production_dependency": true,

@@ -2,6 +2,12 @@
 
 PowerKit keeps the core vendor-neutral but does not pretend every platform has identical customization features.
 
+## Execution capability contracts
+
+Portable workflow behavior and portable execution control are different concerns. The canonical broker requests model tiers, reasoning, agents, context, permissions, iteration limits, verification, and proof without naming a vendor model. Versioned contracts under `adapters/<platform>/capabilities.json` translate those requests for a specific app, CLI, hosted agent, IDE, or SDK surface.
+
+Each control is `NATIVE`, `PARTIAL`, `EMULATED`, or `UNAVAILABLE` and separately records current-session versus launcher availability, translation, and application status. Use `powerkit broker capabilities` to inspect contracts, `powerkit broker explain` to negotiate one task, and `powerkit broker launch` to pass supported Codex/Claude CLI settings. The complete matrix and limitations are in [Execution Broker](EXECUTION_BROKER.md).
+
 ## PowerKit command surface
 
 `pk` is one logical command with native platform presentation:
@@ -72,7 +78,7 @@ Personal Claude skills with the same name can override project skills. A reposit
 
 PowerKit installs project skills to `.agents/skills` and Copilot CLI user custom agents to `~/.copilot/agents`; it does not install IDE user-profile agents. Current Copilot cloud-agent, code-review, CLI, app, and supported IDE documentation accepts `.agents/skills`, and code review is generally available. This layout is documentation-compatible with code-review skill loading, but PowerKit did not live-test that surface. Custom-agent and instruction support varies by surface, and the `playwright/*` runtime-observer tool is guaranteed only in the Copilot cloud agent.
 
-Feature support varies by IDE and surface. The loose-file adapters were checked against official documentation on 2026-08-16 but were not loaded in current live clients during v0.1.1 verification. Keep adapters conservative and verify them against the versions used by the team.
+Feature support varies by IDE and surface. Loose-file customization support was checked against official documentation; the execution capability contract records per-surface validation status and a 2026-08-17 verification date. Keep adapters conservative and verify them against the versions used by the team.
 
 ## Command-layer invocation
 
@@ -85,6 +91,8 @@ PowerKit installs a canonical `pk` skill. Claude surfaces commonly expose skills
 - Keep installer manifests base-relative; schema-v2 managed installs can be updated after a repository move or clone.
 - Never maintain separate behavioral text manually in three directories.
 - Put platform-only behavior in adapters.
+- Keep platform model identifiers and native setting translations out of canonical policy.
+- Refresh capability sources and `last_verified` when a client surface changes.
 - Run `python3 tools/validate.py` after changes.
 
 ## Description collisions

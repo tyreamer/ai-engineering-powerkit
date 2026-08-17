@@ -25,6 +25,7 @@ PK_FILES = (
     "SKILL.md",
     "evals/routing-cases.json",
     "references/command-manifest.json",
+    "references/execution-broker.md",
     "references/proof-pack.md",
     "references/modes.md",
     "references/routing.md",
@@ -103,6 +104,38 @@ class IntegratedReleaseCandidateTests(unittest.TestCase):
             self.assertEqual(
                 config["proof"]["output_directory"], ".ai-powerkit/proofs"
             )
+            self.assertEqual(config["execution_policy"]["max_parallel_agents"], 4)
+
+    def test_fresh_install_ignores_generated_local_state_and_preserves_rules(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp)
+            subprocess.run(["git", "init", "-q", str(target)], check=True)
+            ignore = target / ".ai-powerkit/.gitignore"
+            ignore.parent.mkdir(parents=True)
+            ignore.write_text("custom-cache/\n", encoding="utf-8")
+            self.init(target)
+            content = ignore.read_text(encoding="utf-8")
+            self.assertIn("custom-cache/", content)
+            for rule in ("backups/", "proofs/", "traces/", "verification/"):
+                self.assertIn(rule, content)
+            generated = (
+                target / ".ai-powerkit/traces/task.json",
+                target / ".ai-powerkit/proofs/task/proof.json",
+                target / ".ai-powerkit/verification/result.json",
+            )
+            for path in generated:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("{}\n", encoding="utf-8")
+            status = subprocess.run(
+                ["git", "status", "--ignored", "--short"],
+                cwd=target,
+                text=True,
+                capture_output=True,
+                check=True,
+            ).stdout
+            self.assertIn("!! .ai-powerkit/traces/", status)
+            self.assertIn("!! .ai-powerkit/proofs/", status)
+            self.assertIn("!! .ai-powerkit/verification/", status)
 
     def test_all_eight_explicit_pk_modes_survive_installation(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -187,7 +220,7 @@ class IntegratedReleaseCandidateTests(unittest.TestCase):
                 marker_path.write_text(json.dumps(marker, indent=2) + "\n", encoding="utf-8")
 
             result = self.run_powerkit(
-                "update", "--target", str(target), "--version", "0.3.0", "--yes"
+                "update", "--target", str(target), "--version", "0.4.0", "--yes"
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             updated_config = self.read_json(config_path)

@@ -42,10 +42,10 @@ Do not put a verification status in explanatory module data. When a UI state, mi
 Run:
 
 ```text
-powerkit proof create --input <task-spec.json>
+powerkit proof create --input <task-spec.json> --broker-trace .ai-powerkit/traces/<task>.json
 ```
 
-The command reads `.ai-powerkit/project.json`, runs the verification levels appropriate to the recorded depth, and writes under `.ai-powerkit/proofs/<task-id>/`. Use `--evidence` only with output created by the PowerKit verification runner; stale imported evidence cannot produce a verified result.
+For meaningful broker-routed work, pass the decision trace so the proof is integrity-bound to its task, repository state, compatible depth, and SHA-256 digest. The command replays the deterministic broker inputs and rejects forged fields, a mismatched task/depth, `STOP`, or an unresolved `CHECKPOINT`. A checkpoint requires recorded acknowledgement plus a successful non-dry-run broker launch. The command reads `.ai-powerkit/project.json`, runs the verification levels appropriate to the recorded depth, and writes under `.ai-powerkit/proofs/<task-id>/`. Use `--evidence` only with output created by the PowerKit verification runner; stale imported evidence cannot produce a verified result.
 
 Command output is suppressed by default. Use `--stream-output` only after reviewing the repository-owned executable verification configuration and intentionally accepting terminal disclosure.
 

@@ -23,7 +23,7 @@ PowerKit writes:
 
 The project config is sufficient to reconstruct a team setup. The install manifest is sufficient to check idempotency, health, safe pruning, and safe uninstall.
 
-The optional `powerkit.context_budgets` object configures warning/CI limits. Static release or project comparisons use `.ai-powerkit/context-baseline.json`; observed client traces are deliberately not stored there.
+The optional `powerkit.context_budgets` object configures warning/CI limits. The top-level `execution_policy` object configures cost, latency, agent, model-upgrade, network, checkpoint, iteration, and adapter-override defaults. Static release or project comparisons use `.ai-powerkit/context-baseline.json`; observed client traces are deliberately not stored there.
 
 ## Deterministic flow
 
@@ -38,6 +38,14 @@ python3 -m powerkit init \
 python3 -m powerkit doctor --target ../product-repo --json
 
 python3 -m powerkit context audit --target ../product-repo
+
+python3 -m powerkit broker capabilities --platform codex --probe
+
+python3 -m powerkit broker explain \
+  --target ../product-repo \
+  --effort STANDARD \
+  --risk NORMAL \
+  --platform codex
 ```
 
 `init` defaults to all 24 canonical skills and includes specialized agents. Progressive disclosure still loads only the workflows relevant to a request. The installer does not stage or enable hooks. An agent should pass its known host platform explicitly when repository evidence is ambiguous.
@@ -63,6 +71,8 @@ The shared installer engine:
 - Refuses to overwrite unmanaged skill directories or custom-agent files unless `--force` is explicit.
 - Prunes stale assets only when schema-v2 ownership and digests prove they are still managed; ambiguous or changed artifacts stop mutation.
 
+Capability contracts are distribution assets read by the installed CLI. They are not copied into consumer prompt directories and are not injected into ordinary agent context.
+
 ## Command layer
 
 The default `all` selection includes the canonical `pk` skill and every specialist workflow referenced by its explicit modes. A deliberately narrower profile selection keeps the same command surface when it includes `foundation`, but `pk` can compose only the workflows that are installed and must disclose any material reduction.
@@ -84,7 +94,7 @@ Normal sync follows the project pin, not `main`. For an explicit update, resolve
 ```bash
 python3 -m powerkit update \
   --target ../product-repo \
-  --version 0.3.0 \
+  --version 0.4.0 \
   --yes
 ```
 
@@ -111,7 +121,7 @@ Project configuration is preserved for team reconstruction unless `--purge-confi
 For a published release tag:
 
 ```bash
-pipx install git+https://github.com/tyreamer/ai-engineering-powerkit.git@v0.3.0
+pipx install git+https://github.com/tyreamer/ai-engineering-powerkit.git@v0.4.0
 ```
 
 This exposes `powerkit`. The wheel contains canonical distribution assets packaged directly from `.agents/skills`, adapters, hooks, and templates; those assets are not duplicated in the source repository.

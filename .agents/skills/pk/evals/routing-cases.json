@@ -9,6 +9,8 @@
       "command_mode": "auto",
       "expected_intent": "local_change",
       "expected_depth": "FAST",
+      "expected_effort": "FAST",
+      "expected_risk": "NORMAL",
       "must_activate": ["prompt-preflight", "workload-router"],
       "must_not_activate": ["engineering-task-orchestrator", "migration-planner", "parallel-investigator", "adversarial-review"],
       "preserved_constraints": []
@@ -20,6 +22,8 @@
       "command_mode": "auto",
       "expected_intent": "feature",
       "expected_depth": "STANDARD",
+      "expected_effort": "STANDARD",
+      "expected_risk": "NORMAL",
       "must_activate": ["prompt-preflight", "workload-router", "engineering-task-orchestrator", "repository-cartographer", "task-contract", "verification-loop"],
       "must_not_activate": ["migration-planner", "security-privacy-review"],
       "preserved_constraints": []
@@ -31,6 +35,8 @@
       "command_mode": "auto",
       "expected_intent": "architecture",
       "expected_depth": "DEEP",
+      "expected_effort": "DEEP",
+      "expected_risk": "ELEVATED",
       "must_activate": ["prompt-preflight", "repository-cartographer", "change-impact-analysis", "migration-planner"],
       "must_not_activate": [],
       "preserved_constraints": ["clarify_material_decisions_after_inspection"]
@@ -42,6 +48,8 @@
       "command_mode": "auto",
       "expected_intent": "feature",
       "expected_depth": "DEEP",
+      "expected_effort": "DEEP",
+      "expected_risk": "ELEVATED",
       "must_activate": ["prompt-preflight", "workload-router", "engineering-task-orchestrator", "repository-cartographer", "task-contract", "change-impact-analysis", "vertical-slice-planner", "verification-loop", "runtime-ux-review", "decision-handoff"],
       "must_not_activate": ["migration-planner"],
       "preserved_constraints": ["smallest_strong_vertical_slice", "existing_materials_as_input"]
@@ -53,6 +61,8 @@
       "command_mode": "bug",
       "expected_intent": "bug",
       "expected_depth": "STANDARD",
+      "expected_effort": "STANDARD",
+      "expected_risk": "NORMAL",
       "must_activate": ["evidence-first-debugging", "verification-loop", "decision-handoff"],
       "must_not_activate": ["migration-planner"],
       "preserved_constraints": []
@@ -64,6 +74,8 @@
       "command_mode": "auto",
       "expected_intent": "bug",
       "expected_depth": "DEEP",
+      "expected_effort": "DEEP",
+      "expected_risk": "ELEVATED",
       "must_activate": ["evidence-first-debugging", "verification-loop", "adversarial-review"],
       "must_not_activate": [],
       "preserved_constraints": []
@@ -75,6 +87,8 @@
       "command_mode": "review",
       "expected_intent": "review",
       "expected_depth": "STANDARD",
+      "expected_effort": "STANDARD",
+      "expected_risk": "NORMAL",
       "must_activate": ["implementation-critic", "verification-loop", "test-gap-hunter", "anti-slop-review"],
       "must_not_activate": ["vertical-slice-planner"],
       "preserved_constraints": []
@@ -86,6 +100,8 @@
       "command_mode": "resume",
       "expected_intent": "resume",
       "expected_depth": "STANDARD",
+      "expected_effort": "STANDARD",
+      "expected_risk": "NORMAL",
       "must_activate": ["context-recovery", "decision-handoff"],
       "must_not_activate": ["migration-planner"],
       "preserved_constraints": ["preserve_uncommitted_work"]
@@ -97,6 +113,8 @@
       "command_mode": "architecture",
       "expected_intent": "architecture",
       "expected_depth": "DEEP",
+      "expected_effort": "DEEP",
+      "expected_risk": "ELEVATED",
       "must_activate": ["repository-cartographer", "change-impact-analysis", "migration-planner", "adversarial-review"],
       "must_not_activate": [],
       "preserved_constraints": ["offline_first"]
@@ -108,6 +126,8 @@
       "command_mode": "ui",
       "expected_intent": "ui",
       "expected_depth": "STANDARD",
+      "expected_effort": "STANDARD",
+      "expected_risk": "NORMAL",
       "must_activate": ["ui-evidence-to-spec", "repository-cartographer", "runtime-ux-review"],
       "must_not_activate": ["dependency-due-diligence"],
       "preserved_constraints": ["screenshots_are_evidence"]
@@ -119,6 +139,8 @@
       "command_mode": "dependency",
       "expected_intent": "dependency",
       "expected_depth": "STANDARD",
+      "expected_effort": "STANDARD",
+      "expected_risk": "NORMAL",
       "must_activate": ["dependency-due-diligence", "change-impact-analysis"],
       "must_not_activate": ["vertical-slice-planner"],
       "preserved_constraints": ["no_adoption_without_authority"]
@@ -130,6 +152,8 @@
       "command_mode": "auto",
       "expected_intent": "architecture",
       "expected_depth": "HIGH_RISK",
+      "expected_effort": "DEEP",
+      "expected_risk": "HIGH",
       "must_activate": ["change-impact-analysis", "security-privacy-review", "adversarial-review"],
       "must_not_activate": [],
       "preserved_constraints": ["trusted_authorization_boundary"]
@@ -141,6 +165,8 @@
       "command_mode": "deep",
       "expected_intent": "architecture",
       "expected_depth": "DEEP",
+      "expected_effort": "DEEP",
+      "expected_risk": "ELEVATED",
       "must_activate": ["engineering-task-orchestrator", "change-impact-analysis", "verification-loop", "adversarial-review", "decision-handoff"],
       "must_not_activate": [],
       "preserved_constraints": ["safe_rollout"]
@@ -152,6 +178,8 @@
       "command_mode": "feature",
       "expected_intent": "feature",
       "expected_depth": "STANDARD",
+      "expected_effort": "STANDARD",
+      "expected_risk": "NORMAL",
       "must_activate": ["repository-cartographer", "task-contract", "implementation-planner"],
       "must_not_activate": ["runtime-ux-review"],
       "preserved_constraints": ["plan_only", "no_implementation"]
@@ -163,6 +191,8 @@
       "command_mode": "bug",
       "expected_intent": "bug",
       "expected_depth": "STANDARD",
+      "expected_effort": "STANDARD",
+      "expected_risk": "NORMAL",
       "must_activate": ["evidence-first-debugging"],
       "must_not_activate": [],
       "preserved_constraints": ["no_write", "analysis_only"]
@@ -174,6 +204,8 @@
       "command_mode": "auto",
       "expected_intent": "local_change",
       "expected_depth": "FAST",
+      "expected_effort": "FAST",
+      "expected_risk": "NORMAL",
       "must_activate": ["prompt-preflight", "workload-router"],
       "must_not_activate": ["engineering-task-orchestrator", "change-impact-analysis", "migration-planner", "parallel-investigator", "adversarial-review"],
       "preserved_constraints": []
@@ -185,6 +217,8 @@
       "command_mode": "review",
       "expected_intent": "review",
       "expected_depth": "STANDARD",
+      "expected_effort": "STANDARD",
+      "expected_risk": "NORMAL",
       "must_activate": ["implementation-critic", "verification-loop", "test-gap-hunter"],
       "must_not_activate": ["vertical-slice-planner", "implementation-planner"],
       "preserved_constraints": ["review_only"]
@@ -196,6 +230,8 @@
       "command_mode": "auto",
       "expected_intent": "research",
       "expected_depth": "FAST",
+      "expected_effort": "FAST",
+      "expected_risk": "NORMAL",
       "must_activate": ["prompt-preflight", "workload-router"],
       "must_not_activate": ["engineering-task-orchestrator", "parallel-investigator", "adversarial-review"],
       "preserved_constraints": ["deterministic_evidence", "no_prompt_eyeballing"],

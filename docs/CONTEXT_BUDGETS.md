@@ -43,11 +43,11 @@ The canonical artifact model separates:
 - Skill references.
 - Specialized agent instructions, reported outside the primary-agent path.
 - Platform adapter overhead.
-- Generated task context when real evidence eventually makes it available.
+- The generated compact Execution Broker directive for representative FAST, STANDARD, and DEEP paths.
 
 The auditor uses `catalog.json`, `.ai-powerkit/project.json`, `.ai-powerkit/install-manifest.json`, managed ownership metadata, and known platform destinations. Distribution checkouts must carry PowerKit's source identity. Installed audits verify profile selection plus every expected instruction, skill, agent, and command-adapter inventory entry; corrupt or drifted state fails closed instead of falling back to optimistic counts. Schema-v1 installation inventories remain readable through their validated legacy file list. The auditor does not crawl dependencies, build output, caches, `.git`, or unrelated source code.
 
-The modeled FAST, STANDARD, and DEEP paths use the installed `pk` command manifest and current progressive-disclosure rules. A missing skill in a minimal profile makes the affected path `partial` instead of fabricating a total.
+The modeled FAST, STANDARD, and DEEP paths use the installed `pk` command manifest and current progressive-disclosure rules. When the command manifest enables the Execution Broker, the path includes its deterministic compact directive while excluding the capability matrices and conditional broker reference. A missing skill in a minimal profile makes the affected path `partial` instead of fabricating a total.
 
 ## Estimated versus observed
 
@@ -57,7 +57,7 @@ The built-in estimator uses a deterministic UTF-8 byte approximation and labels 
 
 An exact or compatible tokenizer can be added behind the `TokenEstimator` boundary when the active platform supplies trustworthy model information. Baselines record the estimator ID; incompatible estimators are never compared as if they were equivalent.
 
-Until client instrumentation exists, every platform reports observed context as unsupported. PowerKit never turns a static estimate into a claim about provider-billed input. A future Flight Recorder can supply content-free observed loading and generated-context measurements through a separate evidence path.
+Until client instrumentation exists, every platform reports observed context as unsupported. PowerKit never turns either the static artifact inventory or generated broker estimate into a claim about provider-billed input. A future Flight Recorder can supply content-free observed loading measurements through a separate evidence path.
 
 ## Platform models
 
@@ -159,6 +159,6 @@ Machine output contains counts, categories, paths, discovery descriptions, and r
 
 - Actual host loading and activation rates require live-client instrumentation.
 - Total provider input includes non-PowerKit material outside this tool's scope.
-- Generated repository maps, task contracts, plans, handoffs, and repeated cross-agent packets are unknown without observed traces.
+- Generated repository maps, task contracts, plans, handoffs, and repeated cross-agent packets are unknown without observed traces; only the compact broker directive is modeled today.
 - Exact token counts remain model/tokenizer dependent.
 - Dead-context confidence is limited without routing or activation telemetry.

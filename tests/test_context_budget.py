@@ -241,6 +241,11 @@ class ContextBudgetTests(unittest.TestCase):
         self.assertGreater(by_name["copilot"]["totals"]["adapter_tokens"], 0)
         self.assertEqual(by_name["codex"]["totals"]["adapter_tokens"], 0)
         self.assertEqual(by_name["claude"]["totals"]["adapter_tokens"], 0)
+        for platform in by_name.values():
+            for depth in ("fast", "standard", "deep"):
+                generated = platform["paths"][depth]["components"]["generated_task_context"]
+                self.assertIsInstance(generated, int)
+                self.assertLessEqual(generated, 180)
 
     def test_unconfigured_platform_is_not_given_fake_parity(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -828,11 +833,11 @@ class ContextBudgetTests(unittest.TestCase):
                 {
                     "schema_version": 2,
                     "toolkit": "ai-engineering-powerkit",
-                    "version": "0.3.0",
+                    "version": "0.4.0",
                     "source": {
                         "repository": "https://github.com/tyreamer/ai-engineering-powerkit",
-                        "version": "0.3.0",
-                        "ref": "v0.3.0"
+                        "version": "0.4.0",
+                        "ref": "v0.4.0"
                     },
                     "scope": "project",
                     "profiles": ["foundation"],

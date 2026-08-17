@@ -4,7 +4,7 @@ description: "Routes explicit /pk or $pk requests to the lightest justified Powe
 license: MIT
 metadata:
   author: ai-engineering-powerkit
-  version: "0.3.0"
+  version: "0.4.0"
   profile: foundation
 ---
 
@@ -40,12 +40,13 @@ For `help`, return only the concise command reference in the Help section. Do no
 For every other request:
 
 1. Apply `prompt-preflight` to inspect available context, silently resolve safe defaults, and isolate only material unresolved decisions.
-2. Apply `workload-router` to choose `FAST`, `STANDARD`, `DEEP`, or `HIGH_RISK` effort.
+2. Apply `workload-router` to choose `FAST`, `STANDARD`, or `DEEP` effort and independently choose `NORMAL`, `ELEVATED`, or `HIGH` risk. Preserve `HIGH_RISK` as the public compatibility label for high-risk proof.
 3. Read [references/routing.md](references/routing.md) and select one primary task intent. Add secondary quality or specialist workflows only when the evidence justifies them.
-4. Load the selected installed skills on demand. Never preload all PowerKit skill bodies.
-5. Execute the smallest workflow that satisfies the request, keeping one implementation writer by default.
-6. Verify in proportion to risk using real execution evidence.
-7. For meaningful completed, reviewed, or recovered work, read [references/proof-pack.md](references/proof-pack.md) and finish with the depth-appropriate Completion Brief, machine proof, and optional Proof Report. Keep plan-only and no-write work honest about the absence of implementation proof.
+4. Resolve the active platform policy with `powerkit broker explain --effort <FAST|STANDARD|DEEP> --risk <NORMAL|ELEVATED|HIGH> --platform <host> --control-plane CURRENT_SESSION --compact`, adding only evidence-backed traits and explicit user constraints. Obey its `PROCEED`, `CHECKPOINT`, or `STOP` decision and the stated checkpoint boundary. Apply returned subagent settings only when spawning those subagents. Read [references/execution-broker.md](references/execution-broker.md) only when translation, surface selection, launcher controls, diagnostics, or fallback behavior needs clarification. Never present a launcher-only or subagent-only control as active-root enforcement.
+5. Load the selected installed skills on demand. Never preload all PowerKit skill bodies or platform capability matrices.
+6. Execute the smallest workflow that satisfies the request, keeping one implementation writer by default.
+7. Verify in proportion to risk using real execution evidence.
+8. For meaningful completed, reviewed, or recovered work, read [references/proof-pack.md](references/proof-pack.md) and bind the machine proof to the broker trace and compatibility depth. Keep plan-only and no-write work honest about the absence of implementation proof.
 
 If a selected specialized skill is not installed, do not pretend it was used. Continue with the closest installed workflow only when it can preserve the required safeguards, and disclose any material reduction in verification.
 
@@ -61,7 +62,7 @@ If a selected specialized skill is not installed, do not pretend it was used. Co
 - Architecture and migration work must surface material decisions, compatibility, rollout, and rollback.
 - UI work uses supplied visuals as evidence and verifies runtime behavior when tooling permits.
 - Dependency mode evaluates the actual capability gap before recommending adoption.
-- Security, privacy, authorization, public contracts, destructive migrations, and critical data force `HIGH_RISK` safeguards.
+- Security, privacy, authorization, public contracts, destructive migrations, and critical data force `risk: HIGH` safeguards without automatically forcing maximum parallelism.
 
 ## Constraint preservation
 
@@ -69,6 +70,7 @@ Treat natural-language constraints and lightweight modifiers consistently:
 
 - `--plan-only` or “plan only” means inspect and plan without implementation.
 - `--no-write` or “do not modify files” means analysis only.
+- No-network, no-dependency, no-parallel, cost, latency, isolation, and bounded-scope constraints also survive broker resolution unchanged.
 - Dependency, scope, platform, file, test, and verification limits survive routing unchanged.
 
 Do not strip these constraints from the task passed to downstream workflows. When a requested action conflicts with a constraint, the constraint wins.

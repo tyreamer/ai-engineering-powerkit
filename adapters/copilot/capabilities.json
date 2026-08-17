@@ -1,0 +1,625 @@
+{
+  "schema_version": 1,
+  "platform": "copilot",
+  "display_name": "GitHub Copilot",
+  "last_verified": "2026-08-17",
+  "validated_client_versions": [],
+  "default_surface": "cli",
+  "sources": {
+    "cli": {
+      "title": "Copilot CLI command reference",
+      "url": "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference"
+    },
+    "tools": {
+      "title": "Copilot CLI tool permissions",
+      "url": "https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/allowing-tools"
+    },
+    "sandboxes": {
+      "title": "Copilot cloud and local sandboxes",
+      "url": "https://docs.github.com/en/copilot/concepts/about-cloud-and-local-sandboxes"
+    },
+    "agents": {
+      "title": "Copilot custom agents configuration",
+      "url": "https://docs.github.com/en/copilot/reference/custom-agents-configuration"
+    },
+    "surfaces": {
+      "title": "Copilot customization surface matrix",
+      "url": "https://docs.github.com/en/copilot/reference/customization-cheat-sheet"
+    },
+    "hooks": {
+      "title": "Copilot hooks reference",
+      "url": "https://docs.github.com/en/copilot/reference/hooks-reference"
+    },
+    "fleet": {
+      "title": "Copilot CLI Fleet",
+      "url": "https://docs.github.com/en/copilot/concepts/agents/copilot-cli/fleet"
+    },
+    "models": {
+      "title": "Copilot supported models and reasoning",
+      "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+    },
+    "cloud": {
+      "title": "Copilot coding agent environment",
+      "url": "https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/customize-the-agent-environment"
+    },
+    "firewall": {
+      "title": "Copilot coding agent firewall",
+      "url": "https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/customize-the-agent-firewall"
+    },
+    "cloud_mcp": {
+      "title": "Copilot coding agent MCP",
+      "url": "https://docs.github.com/en/copilot/concepts/agents/cloud-agent/mcp-and-cloud-agent"
+    },
+    "sdk_agents": {
+      "title": "Copilot SDK custom agents",
+      "url": "https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/custom-agents"
+    },
+    "sdk_hooks": {
+      "title": "Copilot SDK hooks",
+      "url": "https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/hooks"
+    },
+    "sdk_mcp": {
+      "title": "Copilot SDK MCP",
+      "url": "https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/mcp"
+    },
+    "sdk_otel": {
+      "title": "Copilot SDK OpenTelemetry",
+      "url": "https://docs.github.com/en/copilot/how-tos/copilot-sdk/observability/opentelemetry"
+    }
+  },
+  "defaults": {
+    "validation": "SUPPORTED",
+    "controls": {
+      "model_selection": {
+        "support": "NATIVE",
+        "summary": "The CLI can select a model, but available identifiers depend on account and policy.",
+        "source_ids": ["cli", "models"],
+        "current_session": {
+          "state": "NATIVE",
+          "origin": "native_session",
+          "detail": "The interactive CLI can change among models available to the account."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_session",
+          "detail": "The launcher can pass a model identifier from the active catalog."
+        }
+      },
+      "reasoning_effort": {
+        "support": "PARTIAL",
+        "summary": "Reasoning controls are model/version dependent and are not portable across Copilot surfaces.",
+        "source_ids": ["cli", "models"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "The selected CLI model may expose a reasoning level."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "A launcher can request a supported reasoning level only after negotiating the model."
+        }
+      },
+      "parallel_agents": {
+        "support": "PARTIAL",
+        "summary": "CLI subagents and Fleet provide parallelism; plan and version limits apply.",
+        "source_ids": ["fleet", "agents"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_subagent",
+          "detail": "The CLI can run background/nested subagents or Fleet where available."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "A launcher can request bounded CLI parallelism subject to plan limits."
+        }
+      },
+      "agent_roles": {
+        "support": "NATIVE",
+        "summary": "CLI custom agents can declare role instructions and tools.",
+        "source_ids": ["agents", "surfaces"],
+        "current_session": {
+          "state": "NATIVE",
+          "origin": "native_subagent",
+          "detail": "Configured custom agents can be selected during CLI work."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_profile",
+          "detail": "Repository or user agent definitions provide native role profiles."
+        }
+      },
+      "context_budget": {
+        "support": "PARTIAL",
+        "summary": "PowerKit can scope discovery, but Copilot does not publish a portable per-task repository-context hard cap.",
+        "source_ids": ["cli", "surfaces"],
+        "current_session": {
+          "state": "EMULATED",
+          "origin": "behavioral",
+          "detail": "PowerKit controls its own reads and summaries only."
+        },
+        "launcher": {
+          "state": "EMULATED",
+          "origin": "behavioral",
+          "detail": "No portable hard context-budget setting is documented."
+        }
+      },
+      "tool_restriction": {
+        "support": "NATIVE",
+        "summary": "CLI availability filters and allow/deny policies restrict tools; surface semantics differ.",
+        "source_ids": ["tools", "agents"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "The active CLI inventory is established; custom subagents can expose narrower tools."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_profile",
+          "detail": "Launch and agent policy can filter available tools and deny operations."
+        }
+      },
+      "filesystem_scope": {
+        "support": "PARTIAL",
+        "summary": "The CLI local sandbox is experimental; without it, tools run with host-user authority.",
+        "source_ids": ["sandboxes", "tools"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "Tool policy is available, but a running unsandboxed session cannot become a strong filesystem boundary."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "A launcher can opt into the experimental sandbox and tool policy."
+        }
+      },
+      "network_restriction": {
+        "support": "PARTIAL",
+        "summary": "The experimental local sandbox can restrict network; an ordinary CLI process retains host-user networking.",
+        "source_ids": ["sandboxes"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "No global network guarantee exists unless the session started inside the sandbox."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "A launcher can opt into local/cloud sandbox policy, subject to documented exclusions."
+        }
+      },
+      "shell_restriction": {
+        "support": "NATIVE",
+        "summary": "Tool availability and allow/deny policy can constrain shell use; OS isolation depends on sandbox mode.",
+        "source_ids": ["tools", "sandboxes"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "The active session can require approvals or avoid the shell, but its tool inventory is already loaded."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_profile",
+          "detail": "Launch policy can exclude or deny shell tools."
+        }
+      },
+      "max_iterations": {
+        "support": "EMULATED",
+        "summary": "No documented Copilot CLI maximum-turn counter exists.",
+        "source_ids": ["cli"],
+        "current_session": {
+          "state": "EMULATED",
+          "origin": "behavioral",
+          "detail": "PowerKit can count workflow phases but cannot hard-cap CLI turns."
+        },
+        "launcher": {
+          "state": "EMULATED",
+          "origin": "outer_harness",
+          "detail": "An outer harness can time out or cancel the session."
+        }
+      },
+      "checkpoints": {
+        "support": "PARTIAL",
+        "summary": "Permission modes and hooks can gate concrete tool events; timeouts may fail open on some paths.",
+        "source_ids": ["tools", "hooks"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "hook_guard",
+          "detail": "Hooks and assisted mode can gate supported actions, not every semantic milestone."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_profile",
+          "detail": "Launch permissions and reviewed hooks provide partial action checkpoints."
+        }
+      },
+      "execution_isolation": {
+        "support": "PARTIAL",
+        "summary": "Experimental worktree/local/cloud sandboxes exist; their availability and guarantees vary.",
+        "source_ids": ["sandboxes"],
+        "current_session": {
+          "state": "UNAVAILABLE",
+          "origin": "unavailable",
+          "detail": "A running root session cannot be retroactively moved into a fresh sandbox."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "A launcher can opt into documented sandbox/worktree modes."
+        }
+      },
+      "runtime_browser": {
+        "support": "PARTIAL",
+        "summary": "Shell tests are native; browser testing generally requires Playwright/Puppeteer MCP.",
+        "source_ids": ["cli", "surfaces"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "Runtime tests work; browser behavior depends on explicitly available MCP tools."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_profile",
+          "detail": "A launcher can configure a browser MCP, with no portable built-in-browser guarantee."
+        }
+      },
+      "usage_telemetry": {
+        "support": "PARTIAL",
+        "summary": "Opt-in OpenTelemetry exists; session synchronization and service retention are separate.",
+        "source_ids": ["cli"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "Capture only events emitted by the configured CLI."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_profile",
+          "detail": "A launcher can configure OTel but cannot control GitHub service retention."
+        }
+      },
+      "external_write_gating": {
+        "support": "PARTIAL",
+        "summary": "Tool permissions and hooks gate known operations; no task tier grants external authority.",
+        "source_ids": ["tools", "hooks"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "hook_guard",
+          "detail": "Known tool calls can require approval or be denied; external authorization remains separate."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_profile",
+          "detail": "Launch policy can gate declared tools, not arbitrary side effects."
+        }
+      },
+      "mcp_restriction": {
+        "support": "PARTIAL",
+        "summary": "Server/tool filters and registry policy exist, with surface and preview limitations.",
+        "source_ids": ["agents", "surfaces"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "The active CLI uses its loaded MCP set; PowerKit can restrict selection behavior."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_profile",
+          "detail": "Launch and agent configuration can filter MCP servers and tools."
+        }
+      }
+    },
+    "translations": [
+      {
+        "control": "model_selection",
+        "setting": "--model",
+        "applies_to": "LAUNCHER",
+        "requires_override": true,
+        "note": "Emitted only when adapter_overrides.copilot.model_tiers names an account-approved model."
+      }
+    ]
+  },
+  "surfaces": {
+    "cli": {
+      "label": "Copilot CLI",
+      "validation": "UNAVAILABLE",
+      "validation_detail": "No Copilot CLI was installed in the validation environment on 2026-08-17; this surface is documentation-backed only."
+    },
+    "ide": {
+      "label": "IDE agent mode",
+      "validation": "SUPPORTED",
+      "validation_detail": "Documentation-backed only in this release; no automated IDE session was available.",
+      "controls": {
+        "model_selection": {
+          "support": "PARTIAL",
+          "summary": "Model pickers and policy are client dependent.",
+          "source_ids": ["models", "surfaces"],
+          "current_session": {
+            "state": "PARTIAL",
+            "origin": "native_session",
+            "detail": "Some IDEs expose a picker; PowerKit cannot assume the selection API."
+          },
+          "launcher": {
+            "state": "PARTIAL",
+            "origin": "native_session",
+            "detail": "No portable cross-IDE launcher model contract exists."
+          }
+        },
+        "parallel_agents": {
+          "support": "PARTIAL",
+          "summary": "VS Code supports subagents; other IDE surfaces vary.",
+          "source_ids": ["surfaces", "agents"],
+          "current_session": {
+            "state": "PARTIAL",
+            "origin": "native_subagent",
+            "detail": "Parallel agents are client dependent."
+          },
+          "launcher": {
+            "state": "PARTIAL",
+            "origin": "native_subagent",
+            "detail": "No portable cross-IDE concurrency cap exists."
+          }
+        },
+        "filesystem_scope": {
+          "support": "UNAVAILABLE",
+          "summary": "No portable IDE OS-sandbox contract is documented.",
+          "source_ids": ["surfaces"],
+          "current_session": {
+            "state": "UNAVAILABLE",
+            "origin": "unavailable",
+            "detail": "IDE tool UI and host process permissions are not a PowerKit filesystem boundary."
+          },
+          "launcher": {
+            "state": "UNAVAILABLE",
+            "origin": "unavailable",
+            "detail": "Use an external sandbox when hard filesystem isolation is required."
+          }
+        },
+        "network_restriction": {
+          "support": "UNAVAILABLE",
+          "summary": "No portable cross-IDE network sandbox is documented.",
+          "source_ids": ["surfaces"],
+          "current_session": {
+            "state": "UNAVAILABLE",
+            "origin": "unavailable",
+            "detail": "IDE permissions do not prove an OS network boundary."
+          },
+          "launcher": {
+            "state": "UNAVAILABLE",
+            "origin": "unavailable",
+            "detail": "Use external isolation for a hard no-network requirement."
+          }
+        },
+        "execution_isolation": {
+          "support": "UNAVAILABLE",
+          "summary": "No portable IDE task-isolation guarantee exists.",
+          "source_ids": ["surfaces"],
+          "current_session": {
+            "state": "UNAVAILABLE",
+            "origin": "unavailable",
+            "detail": "The active IDE workspace is not an isolated task environment."
+          },
+          "launcher": {
+            "state": "UNAVAILABLE",
+            "origin": "unavailable",
+            "detail": "External worktree/container orchestration is required."
+          }
+        }
+      },
+      "translations": []
+    },
+    "coding-agent": {
+      "label": "hosted coding agent",
+      "validation": "SUPPORTED",
+      "validation_detail": "Documentation-backed only in this release; no hosted coding-agent task was launched.",
+      "controls": {
+        "parallel_agents": {
+          "support": "UNAVAILABLE",
+          "summary": "GitHub's surface matrix does not promise coding-agent subagents or a per-task concurrency setting.",
+          "source_ids": ["surfaces", "agents"],
+          "current_session": {
+            "state": "UNAVAILABLE",
+            "origin": "unavailable",
+            "detail": "Custom personas do not prove nested parallel subagent execution."
+          },
+          "launcher": {
+            "state": "UNAVAILABLE",
+            "origin": "unavailable",
+            "detail": "No per-task agent-team control is documented."
+          }
+        },
+        "filesystem_scope": {
+          "support": "PARTIAL",
+          "summary": "Hosted tasks use ephemeral runners; tool permissions inside the runner remain broad.",
+          "source_ids": ["cloud", "sandboxes"],
+          "current_session": {
+            "state": "PARTIAL",
+            "origin": "native_session",
+            "detail": "The runner is ephemeral, but PowerKit does not define every writable path."
+          },
+          "launcher": {
+            "state": "PARTIAL",
+            "origin": "native_session",
+            "detail": "Repository and environment configuration shape the hosted runner."
+          }
+        },
+        "network_restriction": {
+          "support": "PARTIAL",
+          "summary": "The hosted firewall has documented bypasses for setup steps and MCP servers.",
+          "source_ids": ["firewall", "cloud_mcp"],
+          "current_session": {
+            "state": "PARTIAL",
+            "origin": "native_session",
+            "detail": "The firewall does not cover every setup or MCP transport."
+          },
+          "launcher": {
+            "state": "PARTIAL",
+            "origin": "native_profile",
+            "detail": "Repository firewall configuration is native but not a universal no-network boundary."
+          }
+        },
+        "execution_isolation": {
+          "support": "NATIVE",
+          "summary": "Hosted tasks receive an ephemeral runner; self-hosted runner hardening remains operator-owned.",
+          "source_ids": ["cloud", "sandboxes"],
+          "current_session": {
+            "state": "NATIVE",
+            "origin": "native_session",
+            "detail": "The hosted task runs in its ephemeral runner."
+          },
+          "launcher": {
+            "state": "NATIVE",
+            "origin": "native_session",
+            "detail": "Hosted task launch creates the runner; this does not cover self-hosted environments."
+          }
+        },
+        "runtime_browser": {
+          "support": "NATIVE",
+          "summary": "The hosted coding agent supplies Playwright MCP with localhost-oriented constraints.",
+          "source_ids": ["cloud", "cloud_mcp"],
+          "current_session": {
+            "state": "NATIVE",
+            "origin": "native_session",
+            "detail": "Playwright MCP is available in the hosted environment subject to its restrictions."
+          },
+          "launcher": {
+            "state": "NATIVE",
+            "origin": "native_session",
+            "detail": "The hosted task environment supplies the documented browser tool."
+          }
+        }
+      },
+      "translations": []
+    },
+    "sdk": {
+      "label": "Copilot SDK",
+      "validation": "SUPPORTED",
+      "validation_detail": "Documentation-backed only in this release; no embedding application was available for runtime validation.",
+      "controls": {
+        "model_selection": {
+          "support": "NATIVE",
+          "summary": "SDK sessions can select and change models.",
+          "source_ids": ["models", "sdk_agents"],
+          "current_session": {
+            "state": "NATIVE",
+            "origin": "native_session",
+            "detail": "The application can select the session model."
+          },
+          "launcher": {
+            "state": "NATIVE",
+            "origin": "native_session",
+            "detail": "The application owns SDK session creation."
+          }
+        },
+        "parallel_agents": {
+          "support": "PARTIAL",
+          "summary": "SDK Fleet parallelism is experimental.",
+          "source_ids": ["fleet", "sdk_agents"],
+          "current_session": {
+            "state": "PARTIAL",
+            "origin": "native_subagent",
+            "detail": "The application may use experimental Fleet APIs."
+          },
+          "launcher": {
+            "state": "PARTIAL",
+            "origin": "native_session",
+            "detail": "The application can orchestrate parallel sessions with preview APIs."
+          }
+        },
+        "tool_restriction": {
+          "support": "NATIVE",
+          "summary": "SDK sessions can expose/exclude tools and apply hook policy.",
+          "source_ids": ["sdk_agents", "sdk_hooks"],
+          "current_session": {
+            "state": "NATIVE",
+            "origin": "native_session",
+            "detail": "The application owns the available tool set."
+          },
+          "launcher": {
+            "state": "NATIVE",
+            "origin": "native_session",
+            "detail": "SDK session creation can deny by default and attach hooks."
+          }
+        },
+        "filesystem_scope": {
+          "support": "PARTIAL",
+          "summary": "The SDK controls tools, while process/container isolation remains application-owned.",
+          "source_ids": ["sdk_hooks", "sandboxes"],
+          "current_session": {
+            "state": "PARTIAL",
+            "origin": "outer_harness",
+            "detail": "The embedding application must enforce filesystem isolation."
+          },
+          "launcher": {
+            "state": "PARTIAL",
+            "origin": "outer_harness",
+            "detail": "Use application process/container policy plus tool hooks."
+          }
+        },
+        "network_restriction": {
+          "support": "PARTIAL",
+          "summary": "Hook policy can deny tools; network isolation remains application/container responsibility.",
+          "source_ids": ["sdk_hooks", "sdk_mcp"],
+          "current_session": {
+            "state": "PARTIAL",
+            "origin": "outer_harness",
+            "detail": "The embedding application must account for process, MCP, and provider networking."
+          },
+          "launcher": {
+            "state": "PARTIAL",
+            "origin": "outer_harness",
+            "detail": "Use external network policy plus SDK tool/MCP restrictions."
+          }
+        },
+        "checkpoints": {
+          "support": "NATIVE",
+          "summary": "SDK lifecycle and tool hooks can implement application-owned checkpoints.",
+          "source_ids": ["sdk_hooks"],
+          "current_session": {
+            "state": "NATIVE",
+            "origin": "outer_harness",
+            "detail": "The embedding application can block tool events and request a decision."
+          },
+          "launcher": {
+            "state": "NATIVE",
+            "origin": "outer_harness",
+            "detail": "Checkpoint state belongs to the SDK application."
+          }
+        },
+        "usage_telemetry": {
+          "support": "NATIVE",
+          "summary": "The SDK supports OpenTelemetry integration for application-observed events.",
+          "source_ids": ["sdk_otel"],
+          "current_session": {
+            "state": "NATIVE",
+            "origin": "outer_harness",
+            "detail": "The application can capture emitted SDK telemetry."
+          },
+          "launcher": {
+            "state": "NATIVE",
+            "origin": "outer_harness",
+            "detail": "The application configures its OTel pipeline."
+          }
+        },
+        "mcp_restriction": {
+          "support": "NATIVE",
+          "summary": "The SDK can configure MCP servers and tool allowlists.",
+          "source_ids": ["sdk_mcp"],
+          "current_session": {
+            "state": "NATIVE",
+            "origin": "native_session",
+            "detail": "The application owns the session's MCP inventory."
+          },
+          "launcher": {
+            "state": "NATIVE",
+            "origin": "native_session",
+            "detail": "SDK session creation can restrict MCP tools."
+          }
+        }
+      },
+      "translations": []
+    }
+  }
+}

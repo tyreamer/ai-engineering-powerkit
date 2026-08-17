@@ -107,6 +107,26 @@
       },
       "additionalProperties": false
     },
+    "execution_policy": {
+      "type": "object",
+      "required": ["task_id", "repository", "trace_path", "trace_sha256", "requested_effort", "effective_risk", "compatibility_depth", "platform", "surface", "control_plane", "decision", "checkpoint_resolution", "application_status"],
+      "properties": {
+        "task_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"},
+        "repository": {"$ref": "#/$defs/repositoryBinding"},
+        "trace_path": {"type": "string", "pattern": "^\\.ai-powerkit/traces/(?:(?!\\.\\.?/)[A-Za-z0-9._-]+/)*(?!\\.\\.?$)[A-Za-z0-9._-]+\\.json$"},
+        "trace_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "requested_effort": {"enum": ["FAST", "STANDARD", "DEEP"]},
+        "effective_risk": {"enum": ["NORMAL", "ELEVATED", "HIGH"]},
+        "compatibility_depth": {"enum": ["FAST", "STANDARD", "DEEP", "HIGH_RISK"]},
+        "platform": {"enum": ["codex", "claude", "copilot"]},
+        "surface": {"type": "string", "minLength": 1},
+        "control_plane": {"enum": ["CURRENT_SESSION", "LAUNCHER"]},
+        "decision": {"enum": ["PROCEED", "CHECKPOINT"]},
+        "checkpoint_resolution": {"enum": ["NOT_REQUIRED", "ACKNOWLEDGED"]},
+        "application_status": {"type": ["string", "null"], "enum": ["CLIENT_SUCCEEDED", null]}
+      },
+      "additionalProperties": false
+    },
     "runtime_evidence": {"type": "array"},
     "visual_evidence": {"type": "array"},
     "understand": {"type": "array"},

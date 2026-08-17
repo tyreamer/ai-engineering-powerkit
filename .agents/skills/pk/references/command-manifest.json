@@ -16,6 +16,15 @@
     "prompt-preflight",
     "workload-router"
   ],
+  "execution_broker": {
+    "reference": "references/execution-broker.md",
+    "resolve_command": "powerkit broker explain",
+    "capabilities_command": "powerkit broker capabilities",
+    "launch_command": "powerkit broker launch",
+    "effort": ["FAST", "STANDARD", "DEEP"],
+    "risk": ["NORMAL", "ELEVATED", "HIGH"],
+    "high_risk_compatibility_depth": "HIGH_RISK"
+  },
   "modes": {
     "auto": {
       "primary_skills": [],
@@ -171,6 +180,22 @@
     "no-write": [
       "--no-write",
       "do not modify files"
+    ],
+    "no-network": [
+      "--no-network",
+      "no network"
+    ],
+    "no-dependencies": [
+      "--no-dependencies",
+      "no new dependencies"
+    ],
+    "no-parallel": [
+      "--no-parallel",
+      "no parallel agents"
+    ],
+    "cost-sensitive": [
+      "--cost-sensitive",
+      "cost sensitive"
     ]
   },
   "adapters": {

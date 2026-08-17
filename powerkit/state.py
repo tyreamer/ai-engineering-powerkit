@@ -17,6 +17,9 @@ from powerkit.resources import distribution_manifest, distribution_version
 
 
 PROJECT_CONFIG_PATH = Path(".ai-powerkit/project.json")
+LOCAL_STATE_IGNORE_PATH = Path(".ai-powerkit/.gitignore")
+LOCAL_STATE_IGNORE_MARKER = "# AI Engineering PowerKit generated local state"
+LOCAL_STATE_IGNORE_RULES = ("backups/", "proofs/", "traces/", "verification/")
 SUPPORTED_PLATFORMS = ("codex", "claude", "copilot")
 PLATFORM_ALIASES = {
     "codex": "codex",
@@ -188,6 +191,13 @@ def build_project_config(
         "proof",
         {"output_directory": ".ai-powerkit/proofs"},
     )
+    default_execution_policy = distribution_manifest().get("execution_policy")
+    payload.setdefault(
+        "execution_policy",
+        dict(default_execution_policy)
+        if isinstance(default_execution_policy, dict)
+        else {},
+    )
     payload.setdefault(
         "policy",
         {
@@ -206,12 +216,26 @@ def write_project_config(target: Path, payload: dict[str, Any], *, dry_run: bool
         raise RuntimeError(f"Refusing to replace symlinked PowerKit project configuration: {path}")
     rendered = json.dumps(payload, indent=2) + "\n"
     existing = path.read_text(encoding="utf-8") if path.is_file() else None
-    if existing == rendered:
-        return False
+    config_changed = existing != rendered
+
+    ignore_path = target / LOCAL_STATE_IGNORE_PATH
+    ensure_managed_path(target, ignore_path)
+    if ignore_path.is_symlink():
+        raise RuntimeError(f"Refusing symlinked PowerKit local-state ignore file: {ignore_path}")
+    ignore_existing = (
+        ignore_path.read_text(encoding="utf-8") if ignore_path.is_file() else ""
+    )
+    missing_rules = [rule for rule in LOCAL_STATE_IGNORE_RULES if rule not in ignore_existing.splitlines()]
+    ignore_changed = bool(missing_rules)
     if dry_run:
-        return True
-    atomic_write_text(path, rendered)
-    return True
+        return config_changed or ignore_changed
+    if config_changed:
+        atomic_write_text(path, rendered)
+    if ignore_changed:
+        separator = "" if not ignore_existing or ignore_existing.endswith("\n") else "\n"
+        block = LOCAL_STATE_IGNORE_MARKER + "\n" + "\n".join(missing_rules) + "\n"
+        atomic_write_text(ignore_path, ignore_existing + separator + block)
+    return config_changed or ignore_changed
 
 
 def load_install_manifest(target: Path) -> dict[str, Any] | None:

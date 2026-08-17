@@ -8,6 +8,7 @@ AI-assistant customization has its own supply-chain risk.
 - A hook can execute arbitrary local commands.
 - An MCP server can access external systems and data.
 - A custom agent can receive broad tools or permissions.
+- A broker capability claim can create false confidence if launch-time, current-session, and behavioral controls are conflated.
 - An installer can modify personal configuration.
 - Repository-defined verification commands execute through a shell.
 - Repository instructions can attempt to override user or enterprise policy.
@@ -33,6 +34,12 @@ AI-assistant customization has its own supply-chain risk.
 - Record ownership kinds and content digests; refuse stale pruning or uninstall when they disagree.
 - Resolve explicit tags or commits for consumers instead of silently tracking `main`.
 - Review `.ai-powerkit/project.json` as executable code before running verification.
+- Treat `NATIVE`, `PARTIAL`, `EMULATED`, and `UNAVAILABLE` literally; never substitute a prompt promise for an enforceable permission, network, or isolation boundary.
+- Keep broker traces local, content-light, mode `0600`, and confined to `.ai-powerkit/traces/`; project initialization adds generated-state rules to `.ai-powerkit/.gitignore` without removing existing rules. Delete traces with their dependent proof when retention is no longer justified.
+- Treat client probes as bounded active execution, not passive inspection. Use trusted absolute client paths, a neutral working directory, a minimal environment, output limits, and timeouts.
+- Use `broker launch` for supported local clients so caller flags cannot override negotiated controls; never treat a dry-run or unapplied setting as enforcement.
+
+The Execution Broker is a policy negotiation and diagnostics layer, not a security sandbox. A `STOP` result means the selected surface cannot prove a required boundary; it does not grant permission to weaken the requirement.
 
 ## Hook policy
 

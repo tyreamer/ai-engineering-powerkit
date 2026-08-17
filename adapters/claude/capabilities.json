@@ -1,0 +1,394 @@
+{
+  "schema_version": 1,
+  "platform": "claude",
+  "display_name": "Claude Code",
+  "last_verified": "2026-08-17",
+  "validated_client_versions": ["2.1.123"],
+  "default_surface": "cli",
+  "sources": {
+    "cli": {
+      "title": "Claude Code CLI reference",
+      "url": "https://code.claude.com/docs/en/cli-reference"
+    },
+    "models": {
+      "title": "Claude Code model configuration",
+      "url": "https://code.claude.com/docs/en/model-config"
+    },
+    "permissions": {
+      "title": "Claude Code permissions",
+      "url": "https://code.claude.com/docs/en/permissions"
+    },
+    "subagents": {
+      "title": "Claude Code subagents",
+      "url": "https://code.claude.com/docs/en/sub-agents"
+    },
+    "sandbox": {
+      "title": "Claude Code sandboxing",
+      "url": "https://code.claude.com/docs/en/sandboxing"
+    },
+    "hooks": {
+      "title": "Claude Code hooks",
+      "url": "https://code.claude.com/docs/en/hooks"
+    },
+    "mcp": {
+      "title": "Claude Code MCP",
+      "url": "https://code.claude.com/docs/en/mcp"
+    },
+    "worktrees": {
+      "title": "Claude Code worktrees",
+      "url": "https://code.claude.com/docs/en/worktrees"
+    },
+    "chrome": {
+      "title": "Claude in Chrome",
+      "url": "https://code.claude.com/docs/en/chrome"
+    },
+    "monitoring": {
+      "title": "Claude Code monitoring",
+      "url": "https://code.claude.com/docs/en/monitoring-usage"
+    }
+  },
+  "defaults": {
+    "validation": "LIVE_VALIDATED",
+    "controls": {
+      "model_selection": {
+        "support": "NATIVE",
+        "summary": "Native through CLI/session controls and subagent model frontmatter.",
+        "source_ids": ["cli", "models", "subagents"],
+        "current_session": {
+          "state": "NATIVE",
+          "origin": "native_session",
+          "detail": "The interactive session can change model and subagents can select their own model."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_session",
+          "detail": "The launcher can pass --model or managed model policy."
+        }
+      },
+      "reasoning_effort": {
+        "support": "PARTIAL",
+        "summary": "Native effort controls exist, but accepted levels and mutability depend on model and client version.",
+        "source_ids": ["cli", "models", "subagents"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "The session can set effort where the active model/version supports it."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "The launcher can pass --effort, subject to model/version support."
+        }
+      },
+      "parallel_agents": {
+        "support": "NATIVE",
+        "summary": "Background subagents run concurrently and a client setting caps their concurrency.",
+        "source_ids": ["subagents"],
+        "current_session": {
+          "state": "NATIVE",
+          "origin": "native_subagent",
+          "detail": "The active session can start bounded background subagents."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_profile",
+          "detail": "The launcher can set CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS."
+        }
+      },
+      "agent_roles": {
+        "support": "NATIVE",
+        "summary": "Custom subagents support role-specific model, tools, permissions, MCP, hooks, skills, effort, turns, and worktrees.",
+        "source_ids": ["subagents"],
+        "current_session": {
+          "state": "NATIVE",
+          "origin": "native_subagent",
+          "detail": "Configured project roles can be selected during the session."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_profile",
+          "detail": "The launcher or project files can supply custom role definitions."
+        }
+      },
+      "context_budget": {
+        "support": "PARTIAL",
+        "summary": "PowerKit can scope reads and use subagent isolation, but no stable hard per-task context budget is documented.",
+        "source_ids": ["subagents"],
+        "current_session": {
+          "state": "EMULATED",
+          "origin": "behavioral",
+          "detail": "Repository scope and summaries are PowerKit-owned, not a provider hard limit."
+        },
+        "launcher": {
+          "state": "EMULATED",
+          "origin": "behavioral",
+          "detail": "The launcher can isolate subagent context but cannot impose the canonical budget as a hard limit."
+        }
+      },
+      "tool_restriction": {
+        "support": "NATIVE",
+        "summary": "--tools controls availability; disallowedTools denies tools. allowedTools only preapproves and is not an allowlist.",
+        "source_ids": ["cli", "permissions"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "Tool availability is established for the session; role-specific subagents can be stricter."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_session",
+          "detail": "The launcher can set the available tools and explicit deny rules."
+        }
+      },
+      "filesystem_scope": {
+        "support": "PARTIAL",
+        "summary": "Permission modes and OS sandboxing help, but built-in file tools are outside the Bash sandbox.",
+        "source_ids": ["permissions", "sandbox"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "Plan mode and tool denial can prevent edits; a running session cannot acquire a new OS boundary retroactively."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_profile",
+          "detail": "Launch permissions, tool denial, and sandbox policy must be combined; no one control covers every file path."
+        }
+      },
+      "network_restriction": {
+        "support": "PARTIAL",
+        "summary": "The sandbox uses proxy/domain policy, but built-in tools and unsandboxed fallback require separate handling.",
+        "source_ids": ["sandbox", "permissions"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "PowerKit must separately restrict Bash, WebFetch, MCP, Chrome, and other transports."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_profile",
+          "detail": "A launcher can configure sandbox domains and failIfUnavailable, plus tool/MCP restrictions."
+        }
+      },
+      "shell_restriction": {
+        "support": "NATIVE",
+        "summary": "Bash availability and command-pattern permissions can be restricted explicitly.",
+        "source_ids": ["cli", "permissions", "sandbox"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "The active session keeps its tool inventory; stricter subagents can omit Bash."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_session",
+          "detail": "The launcher can omit Bash from --tools and add deny rules."
+        }
+      },
+      "max_iterations": {
+        "support": "PARTIAL",
+        "summary": "Native for print mode, Agent SDK sessions, and subagents; not a hard cap for the main interactive session.",
+        "source_ids": ["cli", "subagents"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_subagent",
+          "detail": "Subagent maxTurns is native; the interactive root has no documented numeric turn cap."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "--max-turns applies to print mode, not every interactive workflow."
+        }
+      },
+      "checkpoints": {
+        "support": "PARTIAL",
+        "summary": "Permission modes and blocking hooks gate concrete actions; semantic phase checkpoints remain workflow-owned.",
+        "source_ids": ["permissions", "hooks"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "hook_guard",
+          "detail": "Blocking hooks and human prompts can gate supported events, not every semantic milestone."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_profile",
+          "detail": "Launch permission modes and reviewed command hooks can establish action checkpoints."
+        }
+      },
+      "execution_isolation": {
+        "support": "PARTIAL",
+        "summary": "Worktrees isolate Git edits and OS sandboxing limits processes, but neither is a full VM boundary.",
+        "source_ids": ["worktrees", "sandbox"],
+        "current_session": {
+          "state": "UNAVAILABLE",
+          "origin": "unavailable",
+          "detail": "A running root session cannot be retroactively moved to a new worktree."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "--worktree and sandbox policy can isolate edits/processes without isolating all secrets or network."
+        }
+      },
+      "runtime_browser": {
+        "support": "PARTIAL",
+        "summary": "Shell tests are native; Chrome integration is beta and shares signed-in browser state.",
+        "source_ids": ["chrome", "cli"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "Chrome is usable only when installed, enabled, and appropriate for the signed-in profile."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "The launcher can enable/disable Chrome; availability remains client/account dependent."
+        }
+      },
+      "usage_telemetry": {
+        "support": "PARTIAL",
+        "summary": "Opt-in OpenTelemetry exposes metrics/events/traces; provider retention and operational telemetry are separate.",
+        "source_ids": ["monitoring"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "Capture only metrics actually emitted by the configured client."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_profile",
+          "detail": "A launcher can configure OTel, while service-side retention remains outside PowerKit control."
+        }
+      },
+      "external_write_gating": {
+        "support": "PARTIAL",
+        "summary": "Permissions and hooks gate known tools, but external writes require tool-specific authorization.",
+        "source_ids": ["permissions", "hooks"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "hook_guard",
+          "detail": "Known tool events can be blocked; task depth never authorizes the external action."
+        },
+        "launcher": {
+          "state": "PARTIAL",
+          "origin": "native_profile",
+          "detail": "Deny/ask rules and hooks can gate declared external-write tools."
+        }
+      },
+      "mcp_restriction": {
+        "support": "NATIVE",
+        "summary": "Strict MCP config and managed/server/tool allowlists exist; identity matching must include URL or command.",
+        "source_ids": ["mcp", "permissions"],
+        "current_session": {
+          "state": "PARTIAL",
+          "origin": "native_session",
+          "detail": "The active session uses its loaded MCP set; PowerKit can avoid exposed tools but not unload them."
+        },
+        "launcher": {
+          "state": "NATIVE",
+          "origin": "native_profile",
+          "detail": "--strict-mcp-config and managed identity/tool policies can restrict MCP at launch."
+        }
+      }
+    },
+    "translations": [
+      {
+        "control": "model_selection",
+        "setting": "--model",
+        "applies_to": "LAUNCHER",
+        "values": {
+          "ECONOMY": "haiku",
+          "BALANCED": "sonnet",
+          "STRONG": "opus",
+          "MAXIMUM": "opus"
+        },
+        "note": "Aliases are adapter data and remain subject to managed availableModels policy."
+      },
+      {
+        "control": "model_selection",
+        "setting": "subagent.model",
+        "applies_to": "SUBAGENT",
+        "values": {
+          "ECONOMY": "haiku",
+          "BALANCED": "sonnet",
+          "STRONG": "opus",
+          "MAXIMUM": "opus"
+        }
+      },
+      {
+        "control": "reasoning_effort",
+        "setting": "--effort",
+        "applies_to": "LAUNCHER",
+        "values": {
+          "LOW": "low",
+          "MEDIUM": "medium",
+          "HIGH": "high",
+          "MAXIMUM": "max"
+        }
+      },
+      {
+        "control": "parallel_agents",
+        "setting": "CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS",
+        "applies_to": "LAUNCHER"
+      },
+      {
+        "control": "filesystem_scope",
+        "setting": "--permission-mode",
+        "applies_to": "LAUNCHER",
+        "values": {
+          "READ_ONLY": "plan",
+          "SCOPED_WRITE": "default"
+        },
+        "note": "NARROW_SCOPED_WRITE also requires explicit tool and sandbox policy."
+      },
+      {
+        "control": "tool_restriction",
+        "setting": "--tools",
+        "applies_to": "LAUNCHER",
+        "values": {
+          "READ_ONLY": "Read,Grep,Glob"
+        }
+      },
+      {
+        "control": "shell_restriction",
+        "setting": "--disallowedTools",
+        "applies_to": "LAUNCHER",
+        "values": {
+          "DENY": "Bash"
+        }
+      },
+      {
+        "control": "mcp_restriction",
+        "setting": "--strict-mcp-config",
+        "applies_to": "LAUNCHER",
+        "values": {
+          "DENY": true
+        },
+        "note": "With no explicit MCP config, strict mode ignores discovered MCP servers."
+      },
+      {
+        "control": "max_iterations",
+        "setting": "--max-turns",
+        "applies_to": "LAUNCHER",
+        "note": "Native only in print mode."
+      },
+      {
+        "control": "execution_isolation",
+        "setting": "--worktree",
+        "applies_to": "LAUNCHER",
+        "values": {
+          "PREFERRED": true,
+          "REQUIRED": true
+        },
+        "note": "A worktree is not a security sandbox."
+      }
+    ]
+  },
+  "surfaces": {
+    "cli": {
+      "label": "local CLI",
+      "validation": "LIVE_VALIDATED",
+      "validation_detail": "A broker-owned stdin invocation on Claude Code 2.1.123 passed haiku, low effort, one-agent cap, plan permission mode, a read-only tool allowlist plus Bash denial, strict empty MCP configuration, no settings sources/browser/slash commands, local non-persistence, and four maximum turns, then returned the expected response on 2026-08-17; this validates that combination, not every control row."
+    }
+  }
+}

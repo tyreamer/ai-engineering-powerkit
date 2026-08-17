@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "powerkit_version": "0.3.0",
+  "powerkit_version": "0.4.0",
   "repository": "https://github.com/tyreamer/ai-engineering-powerkit",
   "bootstrap": "BOOTSTRAP.md",
   "entrypoint": "powerkit",
@@ -11,6 +11,7 @@
     "doctor": "powerkit doctor",
     "proof": "powerkit proof",
     "context_audit": "powerkit context audit",
+    "broker": "powerkit broker",
     "update": "powerkit update",
     "uninstall": "powerkit uninstall"
   },
@@ -20,7 +21,8 @@
     "proofs": ".ai-powerkit/proofs"
   },
   "schemas": {
-    "proof_manifest": "schemas/proof-manifest.schema.json"
+    "proof_manifest": "schemas/proof-manifest.schema.json",
+    "execution_broker": "schemas/execution-broker-v1.schema.json"
   },
   "default_setup": {
     "profiles": [
@@ -44,9 +46,23 @@
     "regression_percent": 20,
     "regression_tokens": 250
   },
+  "execution_policy": {
+    "cost_preference": "BALANCED",
+    "latency_preference": "BALANCED",
+    "max_parallel_agents": 4,
+    "allow_model_upgrade": true,
+    "allow_network": "WHEN_REQUIRED",
+    "high_risk_requires_checkpoint": true,
+    "iteration_limits": {
+      "FAST": 4,
+      "STANDARD": 8,
+      "DEEP": 16
+    },
+    "adapter_overrides": {}
+  },
   "release": {
-    "tag": "v0.3.0",
+    "tag": "v0.4.0",
     "python": ">=3.11",
-    "install": "pipx install git+https://github.com/tyreamer/ai-engineering-powerkit.git@v0.3.0"
+    "install": "pipx install git+https://github.com/tyreamer/ai-engineering-powerkit.git@v0.4.0"
   }
 }
