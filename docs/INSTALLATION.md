@@ -80,7 +80,7 @@ Normal sync follows the project pin, not `main`. For an explicit update, resolve
 ```bash
 python3 -m powerkit update \
   --target ../product-repo \
-  --version 0.2.0 \
+  --version 0.3.0 \
   --yes
 ```
 
@@ -107,7 +107,7 @@ Project configuration is preserved for team reconstruction unless `--purge-confi
 For a published release tag:
 
 ```bash
-pipx install git+https://github.com/tyreamer/ai-engineering-powerkit.git@v0.2.0
+pipx install git+https://github.com/tyreamer/ai-engineering-powerkit.git@v0.3.0
 ```
 
 This exposes `powerkit`. The wheel contains canonical distribution assets packaged directly from `.agents/skills`, adapters, hooks, and templates; those assets are not duplicated in the source repository.
@@ -141,4 +141,6 @@ Pass `--stage-hooks` only to copy the reviewed guard and platform examples under
 
 ## Repository verification commands
 
-Project verification configuration is executable repository code. Replace example commands with commands known to work in the target repository. The verification runner fails when no requested level contains a command unless `--allow-empty` explicitly makes missing proof intentional.
+Project verification configuration is executable repository code. Replace example commands with commands known to work in the target repository and review them before execution. Proof creation suppresses command output by default; `--stream-output` opts into terminal disclosure. Symlinked configuration is rejected. The verification runner fails when no requested level contains a command unless `--allow-empty` explicitly makes missing proof intentional.
+
+Proof Pack output defaults to `.ai-powerkit/proofs/` and is local generated state. Configure a different dedicated path under `.ai-powerkit/` with `proof.output_directory` in project configuration. Source and other tracked directories are rejected. Installation and uninstall do not delete generated proofs.

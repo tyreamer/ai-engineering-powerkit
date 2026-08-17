@@ -308,6 +308,31 @@ def validate_pk_command(known_skills: set[str], errors: list[str]) -> None:
             f"{manifest_path.relative_to(ROOT)}: global_skills must be prompt-preflight and "
             "workload-router"
         )
+    completion = manifest.get("completion")
+    proof_reference = command_root / "references/proof-pack.md"
+    expected_outputs = {
+        "FAST": ["completion-brief"],
+        "STANDARD": ["completion-brief", "proof.json"],
+        "DEEP": ["completion-brief", "proof.json", "report.html"],
+        "HIGH_RISK": [
+            "completion-brief",
+            "proof.json",
+            "report.html",
+            "independent-verification",
+        ],
+    }
+    if (
+        not isinstance(completion, dict)
+        or completion.get("reference") != "references/proof-pack.md"
+        or completion.get("outputs_by_depth") != expected_outputs
+    ):
+        errors.append(f"{manifest_path.relative_to(ROOT)}: completion policy is invalid")
+    if not proof_reference.is_file():
+        errors.append(f"{proof_reference.relative_to(ROOT)}: proof completion reference is missing")
+    elif skill_path.is_file() and "references/proof-pack.md" not in skill_path.read_text(
+        encoding="utf-8"
+    ):
+        errors.append(f"{skill_path.relative_to(ROOT)}: must route completion to proof-pack.md")
 
     modes = manifest.get("modes")
     if not isinstance(modes, dict) or set(modes) != PK_MODES:
@@ -559,6 +584,14 @@ def main() -> int:
             errors.append("manifests/powerkit.json default_setup.profiles is invalid")
         else:
             default_profiles = candidate_profiles
+        commands = distribution.get("commands")
+        if not isinstance(commands, dict) or commands.get("proof") != "powerkit proof":
+            errors.append("manifests/powerkit.json must expose the proof command")
+        schemas = distribution.get("schemas")
+        if not isinstance(schemas, dict) or schemas.get("proof_manifest") != (
+            "schemas/proof-manifest.schema.json"
+        ):
+            errors.append("manifests/powerkit.json must expose the proof manifest schema")
         for relative in ("bootstrap",):
             target = distribution.get(relative)
             if isinstance(target, str) and not (ROOT / target).is_file():
@@ -599,6 +632,33 @@ def main() -> int:
             errors.append(
                 "templates/project-config.example.json profiles must match distribution defaults"
             )
+        proof_config = project_template.get("proof")
+        if not isinstance(proof_config, dict) or proof_config.get("output_directory") != (
+            ".ai-powerkit/proofs"
+        ):
+            errors.append(
+                "templates/project-config.example.json proof output must be .ai-powerkit/proofs"
+            )
+
+    proof_schema_path = ROOT / "schemas/proof-manifest.schema.json"
+    proof_schema = validate_json(proof_schema_path, errors)
+    if isinstance(proof_schema, dict):
+        properties = proof_schema.get("properties")
+        schema_version = properties.get("schema_version") if isinstance(properties, dict) else None
+        required = proof_schema.get("required")
+        required_fields = {
+            "task",
+            "outcome",
+            "verification",
+            "verification_evidence",
+            "source_snapshot",
+            "privacy",
+            "presentation",
+        }
+        if not isinstance(schema_version, dict) or schema_version.get("const") != 1:
+            errors.append("schemas/proof-manifest.schema.json must define schema version 1")
+        if not isinstance(required, list) or not required_fields <= set(required):
+            errors.append("schemas/proof-manifest.schema.json is missing canonical evidence fields")
 
     skill_root = ROOT / ".agents" / "skills"
     if not skill_root.is_dir():

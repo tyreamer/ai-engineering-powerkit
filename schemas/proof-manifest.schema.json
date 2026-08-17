@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tyreamer/ai-engineering-powerkit/schemas/proof-manifest.schema.json",
+  "title": "PowerKit Proof Manifest",
+  "description": "Canonical execution evidence and human explanation for one completed PowerKit task.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "kind",
+    "generated_at",
+    "task",
+    "outcome",
+    "scope",
+    "changes",
+    "verification",
+    "verification_evidence",
+    "source_snapshot",
+    "caveats",
+    "independent_verification",
+    "artifacts",
+    "privacy",
+    "presentation"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "kind": {"const": "powerkit-proof"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "task": {
+      "type": "object",
+      "required": ["id", "title", "summary", "depth", "types", "implementation_state"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"},
+        "title": {"type": "string", "minLength": 1},
+        "summary": {"type": "string", "minLength": 1},
+        "depth": {"enum": ["FAST", "STANDARD", "DEEP", "HIGH_RISK"]},
+        "types": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,39}$"}
+        },
+        "implementation_state": {"enum": ["complete", "partial", "analysis"]},
+        "requested": {"$ref": "#/$defs/stringList"},
+        "delivered": {"$ref": "#/$defs/stringList"},
+        "not_included": {"$ref": "#/$defs/stringList"}
+      },
+      "additionalProperties": false
+    },
+    "outcome": {
+      "type": "object",
+      "required": ["status", "label", "implementation_state", "summary"],
+      "properties": {
+        "status": {"enum": ["IMPLEMENTED", "PARTIALLY_VERIFIED", "VERIFIED", "VERIFIED_WITH_CAVEATS", "FAILED_VERIFICATION", "UNABLE_TO_VERIFY"]},
+        "label": {"type": "string"},
+        "implementation_state": {"enum": ["complete", "partial", "analysis"]},
+        "summary": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "scope": {
+      "type": "object",
+      "required": ["requested", "delivered", "not_included", "preserved"],
+      "properties": {
+        "requested": {"$ref": "#/$defs/stringList"},
+        "delivered": {"$ref": "#/$defs/stringList"},
+        "not_included": {"$ref": "#/$defs/stringList"},
+        "preserved": {"$ref": "#/$defs/stringList"}
+      },
+      "additionalProperties": false
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "summary", "change_type", "component"],
+        "properties": {
+          "path": {"type": "string"},
+          "summary": {"type": "string"},
+          "change_type": {"enum": ["added", "modified", "deleted", "renamed"]},
+          "component": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "verification": {"type": "array", "items": {"$ref": "#/$defs/verificationRecord"}},
+    "verification_evidence": {"type": "object"},
+    "source_snapshot": {
+      "type": "object",
+      "required": ["algorithm", "digest", "files", "repository"],
+      "properties": {
+        "algorithm": {"const": "sha256"},
+        "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "state", "sha256"],
+            "properties": {
+              "path": {"type": "string"},
+              "state": {"enum": ["present", "deleted"]},
+              "sha256": {"type": ["string", "null"]}
+            },
+            "additionalProperties": false
+          }
+        },
+        "repository": {"$ref": "#/$defs/repositoryBinding"}
+      },
+      "additionalProperties": false
+    },
+    "runtime_evidence": {"type": "array"},
+    "visual_evidence": {"type": "array"},
+    "understand": {"type": "array"},
+    "modules": {"type": "object"},
+    "risk": {"type": "object"},
+    "caveats": {"$ref": "#/$defs/stringList"},
+    "independent_verification": {"type": "object"},
+    "artifacts": {"type": "array"},
+    "privacy": {
+      "type": "object",
+      "required": ["command_output_stored", "environment_captured", "prompt_history_captured", "redaction"],
+      "properties": {
+        "command_output_stored": {"const": false},
+        "environment_captured": {"const": false},
+        "prompt_history_captured": {"const": false},
+        "redaction": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "presentation": {"type": "object"}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "stringList": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "repositoryBinding": {
+      "type": "object",
+      "required": ["mode", "git_commit", "digest"],
+      "properties": {
+        "mode": {"const": "git-worktree"},
+        "git_commit": {"type": "string", "pattern": "^[a-fA-F0-9]{40,64}$"},
+        "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "verificationRecord": {
+      "type": "object",
+      "required": ["level", "label", "status", "reason", "command", "exit_code", "duration_seconds", "started_at", "provenance"],
+      "properties": {
+        "level": {"enum": ["static", "targeted", "broader", "runtime"]},
+        "label": {"type": "string"},
+        "status": {"enum": ["passed", "failed", "timed_out", "skipped"]},
+        "reason": {"type": ["string", "null"]},
+        "command": {"type": ["string", "null"]},
+        "exit_code": {"type": ["integer", "null"]},
+        "duration_seconds": {"type": ["number", "null"]},
+        "started_at": {"type": ["string", "null"]},
+        "provenance": {"const": "configured-command-runner"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

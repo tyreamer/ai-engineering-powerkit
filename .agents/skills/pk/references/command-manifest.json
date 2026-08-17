@@ -3,6 +3,15 @@
   "command": "pk",
   "default_mode": "auto",
   "help_mode": "help",
+  "completion": {
+    "reference": "references/proof-pack.md",
+    "outputs_by_depth": {
+      "FAST": ["completion-brief"],
+      "STANDARD": ["completion-brief", "proof.json"],
+      "DEEP": ["completion-brief", "proof.json", "report.html"],
+      "HIGH_RISK": ["completion-brief", "proof.json", "report.html", "independent-verification"]
+    }
+  },
   "global_skills": [
     "prompt-preflight",
     "workload-router"

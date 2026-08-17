@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "powerkit_version": "0.2.0",
+  "powerkit_version": "0.3.0",
   "repository": "https://github.com/tyreamer/ai-engineering-powerkit",
   "bootstrap": "BOOTSTRAP.md",
   "entrypoint": "powerkit",
@@ -9,12 +9,17 @@
     "sync": "powerkit sync",
     "status": "powerkit status",
     "doctor": "powerkit doctor",
+    "proof": "powerkit proof",
     "update": "powerkit update",
     "uninstall": "powerkit uninstall"
   },
   "consumer_state": {
     "project": ".ai-powerkit/project.json",
-    "installed": ".ai-powerkit/install-manifest.json"
+    "installed": ".ai-powerkit/install-manifest.json",
+    "proofs": ".ai-powerkit/proofs"
+  },
+  "schemas": {
+    "proof_manifest": "schemas/proof-manifest.schema.json"
   },
   "default_setup": {
     "profiles": [
@@ -29,8 +34,8 @@
     "copilot"
   ],
   "release": {
-    "tag": "v0.2.0",
+    "tag": "v0.3.0",
     "python": ">=3.11",
-    "install": "pipx install git+https://github.com/tyreamer/ai-engineering-powerkit.git@v0.2.0"
+    "install": "pipx install git+https://github.com/tyreamer/ai-engineering-powerkit.git@v0.3.0"
   }
 }

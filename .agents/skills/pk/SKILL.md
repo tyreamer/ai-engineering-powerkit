@@ -4,7 +4,7 @@ description: "Routes a developer request through the PowerKit command layer and 
 license: MIT
 metadata:
   author: ai-engineering-powerkit
-  version: "0.2.0"
+  version: "0.3.0"
   profile: foundation
 ---
 
@@ -44,7 +44,8 @@ For every other request:
 3. Read [references/routing.md](references/routing.md) and select one primary task intent. Add secondary quality or specialist workflows only when the evidence justifies them.
 4. Load the selected installed skills on demand. Never preload all PowerKit skill bodies.
 5. Execute the smallest workflow that satisfies the request, keeping one implementation writer by default.
-6. Verify in proportion to risk and finish with an evidence-backed handoff when work was implemented, reviewed, or recovered.
+6. Verify in proportion to risk using real execution evidence.
+7. For meaningful completed, reviewed, or recovered work, read [references/proof-pack.md](references/proof-pack.md) and finish with the depth-appropriate Completion Brief, machine proof, and optional Proof Report. Keep plan-only and no-write work honest about the absence of implementation proof.
 
 If a selected specialized skill is not installed, do not pretend it was used. Continue with the closest installed workflow only when it can preserve the required safeguards, and disclose any material reduction in verification.
 

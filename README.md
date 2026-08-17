@@ -32,6 +32,8 @@ pk skill
 
 **You bring the intent. PowerKit brings the engineering discipline.**
 
+When the agent says it is done, **PowerKit shows you what you now own, how it works, and how it was proven.** Its Proof Pack starts with a concise Completion Brief, preserves machine evidence locally, and adds an offline visual report when the work is complex enough to benefit from one.
+
 ---
 
 # Give it to your coding assistant
@@ -49,7 +51,7 @@ Follow BOOTSTRAP.md, preserve existing project configuration,
 verify the installation, and tell me when PowerKit is ready.
 ```
 
-PowerKit v0.2 provides a machine-readable bootstrap contract and deterministic installation tooling so the assistant can configure the repository from a pinned release instead of manually recreating skills and agent files.
+PowerKit v0.3 provides a machine-readable bootstrap contract and deterministic installation tooling so the assistant can configure the repository from a pinned release instead of manually recreating skills and agent files.
 
 Once installed, explicitly invoke the `pk` skill and describe the task. Native syntax depends on the host:
 
@@ -220,7 +222,7 @@ small always-on metadata
  deeper references only if needed
 ```
 
-The standard v0.2 bootstrap installs all 24 skills so every `pk` mode has its specialist workflows. Installing PowerKit does **not** mean intentionally injecting the entire toolkit into every model request.
+The standard v0.3 bootstrap installs all 24 skills so every `pk` mode has its specialist workflows. Installing PowerKit does **not** mean intentionally injecting the entire toolkit into every model request.
 
 A project can have many capabilities available while a small task loads only what it needs. Exact discovery and loading behavior remains host-dependent.
 
@@ -230,7 +232,7 @@ This matters for latency, context quality, and token usage.
 
 # The toolkit
 
-PowerKit v0.2 includes **24 canonical skills** and **6 specialized agent roles**.
+PowerKit v0.3 includes **24 canonical skills** and **6 specialized agent roles**.
 
 The skills cover four broad areas:
 
@@ -384,7 +386,7 @@ PowerKit modifies coding-assistant configuration and can influence how agents op
 
 That deserves the same care as other engineering tooling.
 
-The v0.2 installer and lifecycle commands are designed around:
+The v0.3 installer and lifecycle commands are designed around:
 
 * path-containment checks
 * symlink defenses
@@ -443,6 +445,7 @@ manifests/          Machine-readable PowerKit distribution metadata
 evals/              Cross-skill routing fixtures
 tests/              Installer, lifecycle, safety, and regression coverage
 tools/              Validation, packaging, legacy install, and verification tools
+schemas/            Versioned machine contracts, including Proof Pack evidence
 docs/               Architecture, security, portability, and operating guidance
 BOOTSTRAP.md         Entry point for coding assistants managing PowerKit
 ```
@@ -451,7 +454,7 @@ BOOTSTRAP.md         Entry point for coding assistants managing PowerKit
 
 # Project status
 
-PowerKit v0.2 is an integration candidate for:
+PowerKit v0.3 is an integration candidate for:
 
 * OpenAI Codex
 * Anthropic Claude Code

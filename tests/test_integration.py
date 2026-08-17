@@ -25,6 +25,7 @@ PK_FILES = (
     "SKILL.md",
     "evals/routing-cases.json",
     "references/command-manifest.json",
+    "references/proof-pack.md",
     "references/routing.md",
 )
 
@@ -97,6 +98,10 @@ class IntegratedReleaseCandidateTests(unittest.TestCase):
             self.assertTrue((target / ".github/prompts/pk.prompt.md").is_file())
             manifest = self.read_json(target / ".ai-powerkit/install-manifest.json")
             self.assertEqual(manifest["commands"], ["pk"])
+            config = self.read_json(target / ".ai-powerkit/project.json")
+            self.assertEqual(
+                config["proof"]["output_directory"], ".ai-powerkit/proofs"
+            )
 
     def test_all_eight_explicit_pk_modes_survive_installation(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -181,7 +186,7 @@ class IntegratedReleaseCandidateTests(unittest.TestCase):
                 marker_path.write_text(json.dumps(marker, indent=2) + "\n", encoding="utf-8")
 
             result = self.run_powerkit(
-                "update", "--target", str(target), "--version", "0.2.0", "--yes"
+                "update", "--target", str(target), "--version", "0.3.0", "--yes"
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             updated_config = self.read_json(config_path)
@@ -209,6 +214,9 @@ class IntegratedReleaseCandidateTests(unittest.TestCase):
             self.init(target, profiles="all")
             consumer_prompt = target / ".github/prompts/team.prompt.md"
             consumer_prompt.write_text("# team-owned\n", encoding="utf-8")
+            proof = target / ".ai-powerkit/proofs/keep-me/proof.json"
+            proof.parent.mkdir(parents=True)
+            proof.write_text("{\"schema_version\": 1}\n", encoding="utf-8")
 
             result = self.run_powerkit("uninstall", "--target", str(target), "--yes")
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -217,6 +225,7 @@ class IntegratedReleaseCandidateTests(unittest.TestCase):
             self.assertFalse((target / ".github/prompts/pk.prompt.md").exists())
             self.assertTrue(consumer_prompt.is_file())
             self.assertTrue((target / ".ai-powerkit/project.json").is_file())
+            self.assertTrue(proof.is_file())
 
     def test_sync_prunes_only_proven_pk_assets_when_command_is_deselected(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

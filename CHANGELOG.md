@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 — 2026-08-17
+
+- Added PowerKit Proof Pack: adaptive Completion Briefs, versioned local proof manifests, and offline HTML Proof Reports derived from one canonical evidence model.
+- Extended repository verification commands to emit execution metadata without persisting stdout, environment values, or prompt history.
+- Added evidence freshness checks, source-file snapshots, independent-verifier separation for high-risk work, artifact sensitivity handling, and scriptless CSP-restricted report rendering.
+- Added `powerkit proof create|list|show|delete`, depth-aware `/pk` completion policy, local lifecycle configuration, and schema/package integration.
+- Added deterministic coverage for depth policy, adaptive task modules, failed/skipped/stale evidence, hostile HTML, redaction, symlink containment, report failure isolation, relocation, and generated-proof lifecycle.
+
 ## 0.2.0 — 2026-08-17
 
 - Made `BOOTSTRAP.md` and `manifests/powerkit.json` the agent-native discovery and distribution contracts.

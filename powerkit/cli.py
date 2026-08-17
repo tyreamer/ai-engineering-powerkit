@@ -11,6 +11,19 @@ from typing import Any, Sequence
 from powerkit.health import HealthReport, run_health_checks
 from powerkit.installer import InstallRequest, csv_values, execute_install
 from powerkit.lifecycle import execute_uninstall
+from powerkit.proof import (
+    build_proof,
+    configured_proof_root,
+    delete_proof,
+    load_proof,
+    load_task_spec,
+    open_report,
+    proof_directories,
+    proof_freshness,
+    refresh_report,
+    render_completion_brief,
+    resolve_proof_directory,
+)
 from powerkit.resources import distribution_manifest, distribution_version
 from powerkit.state import (
     PROJECT_CONFIG_PATH,
@@ -22,6 +35,12 @@ from powerkit.state import (
     settings_from_config,
     source_descriptor,
     write_project_config,
+)
+from powerkit.verification import (
+    load_evidence,
+    repository_fingerprint,
+    run_verification,
+    utc_now as verification_utc_now,
 )
 
 
@@ -391,6 +410,179 @@ def command_version(args: argparse.Namespace) -> int:
     return 0
 
 
+def proof_levels(depth: str, explicit: str | None) -> tuple[str, ...]:
+    if explicit:
+        return tuple(item.strip() for item in explicit.split(",") if item.strip())
+    return {
+        "FAST": ("targeted",),
+        "STANDARD": ("static", "targeted"),
+        "DEEP": ("static", "targeted", "broader", "runtime"),
+        "HIGH_RISK": ("static", "targeted", "broader", "runtime"),
+    }[depth]
+
+
+def empty_verification_evidence(target: Path, levels: Sequence[str]) -> dict[str, Any]:
+    records = [
+        {
+            "level": level,
+            "label": f"{level.title()} verification",
+            "status": "skipped",
+            "reason": "No PowerKit project verification config was available.",
+            "command": None,
+            "exit_code": None,
+            "duration_seconds": None,
+            "started_at": None,
+            "provenance": "configured-command-runner",
+        }
+        for level in levels
+    ]
+    return {
+        "format": "powerkit-verification-evidence",
+        "schema_version": 1,
+        "generated_at": verification_utc_now(),
+        "repository": repository_fingerprint(target),
+        "requested_levels": list(levels),
+        "records": records,
+        "summary": {"executed": 0, "passed": 0, "failed": 0, "skipped": len(records)},
+    }
+
+
+def command_proof_create(args: argparse.Namespace) -> int:
+    target = target_path(args.target)
+    spec_path = args.input if args.input.is_absolute() else target / args.input
+    spec = load_task_spec(spec_path)
+    root = configured_proof_root(target, args.output)
+    levels = proof_levels(spec["task"]["depth"], args.levels)
+    verification_exit = 0
+    trust_current_run = False
+    if args.evidence:
+        evidence_path = args.evidence if args.evidence.is_absolute() else target / args.evidence
+        evidence = load_evidence(evidence_path)
+    else:
+        config_path = args.config if args.config.is_absolute() else target / args.config
+        if config_path.is_file():
+            evidence, verification_exit = run_verification(
+                target,
+                config_path,
+                levels,
+                timeout=args.timeout,
+                keep_going=args.keep_going,
+                allow_empty=args.allow_empty,
+                stream=args.stream_output,
+            )
+            trust_current_run = True
+        elif args.allow_empty:
+            evidence = empty_verification_evidence(target, levels)
+            trust_current_run = True
+        else:
+            raise RuntimeError(
+                f"Verification config does not exist: {config_path}. "
+                "Use --allow-empty only when missing proof is intentional."
+            )
+    proof_dir, proof = build_proof(
+        target,
+        spec,
+        evidence,
+        output_root=root,
+        replace=args.replace,
+        explicit_html=args.html,
+        trust_current_run=trust_current_run,
+    )
+    print()
+    print(render_completion_brief(proof), end="")
+    print()
+    print(f"Machine proof: {proof_dir / 'proof.json'}")
+    report = proof["presentation"]["report"]
+    if report.get("status") == "generated":
+        print(f"Proof Report: {proof_dir / 'report.html'}")
+    elif report.get("status") == "failed":
+        print(
+            "Implementation evidence was preserved, but the Proof Report could not be generated: "
+            f"{report.get('error')}"
+        )
+    if any(record.get("status") in {"failed", "timed_out"} for record in proof["verification"]):
+        verification_exit = verification_exit or 1
+    return verification_exit
+
+
+def command_proof_list(args: argparse.Namespace) -> int:
+    target = target_path(args.target)
+    root = configured_proof_root(target, args.output)
+    rows = []
+    for proof_dir in proof_directories(root):
+        try:
+            proof = load_proof(proof_dir)
+            freshness = proof_freshness(target, proof, proof_dir)
+        except RuntimeError as exc:
+            rows.append({"id": proof_dir.name, "state": "invalid", "error": str(exc)})
+            continue
+        rows.append(
+            {
+                "id": proof["task"]["id"],
+                "title": proof["task"]["title"],
+                "outcome": proof["outcome"]["status"],
+                "freshness": freshness["status"],
+                "generated_at": proof["generated_at"],
+            }
+        )
+    if args.json:
+        print(json.dumps({"proofs": rows}, indent=2))
+    elif not rows:
+        print(f"No proofs found under {root}")
+    else:
+        for row in rows:
+            if row.get("state") == "invalid":
+                print(f"{row['id']}: invalid — {row['error']}")
+            else:
+                print(
+                    f"{row['id']}: {row['title']} — "
+                    f"{row['outcome'].lower().replace('_', ' ')} · {row['freshness']}"
+                )
+    return 0
+
+
+def command_proof_show(args: argparse.Namespace) -> int:
+    target = target_path(args.target)
+    root = configured_proof_root(target, args.output)
+    proof_dir = resolve_proof_directory(target, args.task_id, output_root=root)
+    proof = load_proof(proof_dir)
+    freshness = proof_freshness(target, proof, proof_dir)
+    report_path: Path | None = None
+    if args.refresh_report:
+        report_path = refresh_report(target, proof_dir, proof)
+    if args.open:
+        report_path = open_report(target, proof_dir, proof)
+    if args.json:
+        print(json.dumps({"proof": proof, "current_freshness": freshness}, indent=2))
+    else:
+        print(render_completion_brief(proof), end="")
+        print()
+        if freshness["status"] == "stale":
+            print("Freshness: This proof no longer matches the current code.")
+            for path in freshness["changed_files"]:
+                print(f"  changed: {path}")
+        else:
+            print(f"Freshness: {freshness['status']}")
+        print(f"Machine proof: {proof_dir / 'proof.json'}")
+        report = proof.get("presentation", {}).get("report", {})
+        if isinstance(report, dict) and report.get("path") == "report.html":
+            print(f"Proof Report: {report_path or proof_dir / 'report.html'}")
+    return 0 if freshness["status"] == "current" else 1
+
+
+def command_proof_delete(args: argparse.Namespace) -> int:
+    target = target_path(args.target)
+    root = configured_proof_root(target, args.output)
+    proof_dir = resolve_proof_directory(target, args.task_id, output_root=root)
+    require_confirmation(args, [f"delete generated proof: {proof_dir}"])
+    if args.dry_run:
+        print(f"Would delete proof: {proof_dir}")
+        return 0
+    deleted = delete_proof(target, root, args.task_id)
+    print(f"Deleted proof: {deleted}")
+    return 0
+
+
 def add_target(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--target", type=Path, default=Path("."))
 
@@ -467,6 +659,53 @@ def build_parser() -> argparse.ArgumentParser:
 
     version = subparsers.add_parser("version", help="Print the running distribution version")
     version.set_defaults(handler=command_version)
+
+    proof = subparsers.add_parser("proof", help="Create and inspect local completion proof")
+    proof_subparsers = proof.add_subparsers(dest="proof_command", required=True)
+
+    proof_create = proof_subparsers.add_parser(
+        "create", help="Run or import verification and build a Proof Pack"
+    )
+    add_target(proof_create)
+    proof_create.add_argument("--input", type=Path, required=True, help="Proof task specification")
+    proof_create.add_argument("--config", type=Path, default=PROJECT_CONFIG_PATH)
+    proof_create.add_argument("--levels", help="Comma-separated verification levels")
+    proof_create.add_argument("--timeout", type=int, default=900)
+    proof_create.add_argument("--keep-going", action="store_true")
+    proof_create.add_argument("--allow-empty", action="store_true")
+    proof_create.add_argument(
+        "--stream-output",
+        action="store_true",
+        help="Stream trusted verification command output to the terminal",
+    )
+    proof_create.add_argument("--evidence", type=Path, help="Previously recorded execution evidence")
+    proof_create.add_argument("--html", action="store_true", help="Generate HTML for STANDARD work")
+    proof_create.add_argument("--replace", action="store_true")
+    proof_create.add_argument("--output", type=Path)
+    proof_create.set_defaults(handler=command_proof_create)
+
+    proof_list = proof_subparsers.add_parser("list", help="List generated proofs")
+    add_target(proof_list)
+    proof_list.add_argument("--output", type=Path)
+    proof_list.add_argument("--json", action="store_true")
+    proof_list.set_defaults(handler=command_proof_list)
+
+    proof_show = proof_subparsers.add_parser("show", help="Show a proof and check freshness")
+    proof_show.add_argument("task_id", help="Proof task id or latest")
+    add_target(proof_show)
+    proof_show.add_argument("--output", type=Path)
+    proof_show.add_argument("--json", action="store_true")
+    proof_show.add_argument("--refresh-report", action="store_true")
+    proof_show.add_argument("--open", action="store_true")
+    proof_show.set_defaults(handler=command_proof_show)
+
+    proof_delete = proof_subparsers.add_parser("delete", help="Delete one generated proof")
+    proof_delete.add_argument("task_id")
+    add_target(proof_delete)
+    proof_delete.add_argument("--output", type=Path)
+    proof_delete.add_argument("--dry-run", action="store_true")
+    proof_delete.add_argument("--yes", action="store_true")
+    proof_delete.set_defaults(handler=command_proof_delete)
     return parser
 
 

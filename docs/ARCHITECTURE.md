@@ -1,6 +1,6 @@
 # Architecture
 
-PowerKit separates agent bootstrap from runtime customization. `BOOTSTRAP.md` plus `manifests/powerkit.json` form a small installation control plane; deterministic Python tooling turns that contract into versioned consumer state. Normal coding requests then use six progressively disclosed runtime layers.
+PowerKit separates agent bootstrap from runtime customization. `BOOTSTRAP.md` plus `manifests/powerkit.json` form a small installation control plane; deterministic Python tooling turns that contract into versioned consumer state. Normal coding requests then use six progressively disclosed runtime layers and finish through one evidence-backed proof path.
 
 ## Agent bootstrap control plane
 
@@ -114,6 +114,7 @@ flowchart TB
     W --> V[Verifier]
     V --> C[Critic / Security / UX]
     C --> H[Decision Handoff]
+    H --> P[Proof Pack]
     X[Hooks] -. deterministic gates .-> M
     T[MCP and tools] -. external capability .-> E
     T -.-> W
@@ -144,3 +145,17 @@ Installing every skill everywhere can reduce routing clarity and crowd the skill
 The installer records exactly what it added.
 
 The `pk` foundation skill is the explicit daily command router. Its metadata is small, implicit OpenAI invocation is disabled, and its body loads only when `/pk`, `$pk`, or an equivalent explicit request is used.
+
+## Proof architecture
+
+Proof Pack does not run a second verification system. The existing repository command runner records command, level, time, exit status, and duration without retaining stdout. The proof builder derives status from those records, combines them with source snapshots and explicitly supplied explanations, and renders both human outputs from the same manifest.
+
+```text
+existing execution + verification
+             ↓
+      canonical proof.json
+        ↙             ↘
+Completion Brief    report.html
+```
+
+Facts and explanations remain distinct. A model may explain root cause, component responsibility, or design intent, but it cannot set a check to passed. Generated proof state is local under `.ai-powerkit/proofs/`, outside the installer ownership manifest, and is never committed or uploaded automatically.

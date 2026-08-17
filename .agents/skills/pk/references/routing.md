@@ -35,6 +35,7 @@ Use for a clear, low-risk, reversible local change.
 - Inspect the owning file and nearby proof.
 - Make the smallest change if writes are authorized.
 - Run targeted validation.
+- Return a compact Completion Brief; do not generate HTML by default.
 - Do not create a task contract, broad cartography, subagent swarm, migration plan, or adversarial review unless new evidence changes the risk.
 
 ### STANDARD
@@ -46,6 +47,7 @@ Use for ordinary multi-file features and reproducible bugs.
 - Keep one writer.
 - Add targeted and affected-scope verification.
 - Review the final diff.
+- Generate a Completion Brief and machine proof; HTML is automatic only for visual or structural work.
 
 ### DEEP
 
@@ -55,6 +57,7 @@ Use for cross-cutting features, difficult or intermittent bugs, architecture wor
 - Use bounded read-only investigators only when their questions are independent.
 - Keep overlapping source changes with one writer.
 - Require broader verification and criticism.
+- Generate a Completion Brief, machine proof, and offline Proof Report.
 
 ### HIGH_RISK
 
@@ -64,6 +67,7 @@ Use for security, privacy, authorization, critical data, destructive migration, 
 - Make material assumptions explicit.
 - Define containment, compatibility, rollback, and residual risk.
 - Never let an explicit mode or urgency lower the required safeguards.
+- Require independent verifier evidence before presenting the result as fully verified.
 
 ## Explicit mode composition
 

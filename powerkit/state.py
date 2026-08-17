@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 
 from powerkit.installer import (
@@ -34,6 +34,7 @@ class ProjectSettings:
     platforms: tuple[str, ...]
     agents: bool
     hooks_staged: bool
+    proof_output_directory: str
     source: dict[str, Any]
 
 
@@ -109,12 +110,26 @@ def settings_from_config(payload: dict[str, Any]) -> ProjectSettings:
     hooks_staged = powerkit.get("hooks_staged", False)
     if not isinstance(agents, bool) or not isinstance(hooks_staged, bool):
         raise RuntimeError("PowerKit agents and hooks_staged settings must be booleans.")
+    proof = payload.get("proof", {"output_directory": ".ai-powerkit/proofs"})
+    output_directory = proof.get("output_directory") if isinstance(proof, dict) else None
+    if not isinstance(output_directory, str) or not output_directory.strip():
+        raise RuntimeError("PowerKit proof.output_directory must be a non-empty string.")
+    relative_output = PurePosixPath(output_directory.strip())
+    if relative_output.is_absolute() or any(
+        part in {"", ".", ".."} for part in relative_output.parts
+    ):
+        raise RuntimeError("PowerKit proof.output_directory must be a safe relative path.")
+    if len(relative_output.parts) < 2 or relative_output.parts[0] != ".ai-powerkit":
+        raise RuntimeError(
+            "PowerKit proof.output_directory must be dedicated generated state under .ai-powerkit/."
+        )
     return ProjectSettings(
         version=version,
         profiles=tuple(dict.fromkeys(item.strip().lower() for item in profiles)),
         platforms=normalized_platforms,
         agents=agents,
         hooks_staged=hooks_staged,
+        proof_output_directory=relative_output.as_posix(),
         source=dict(source),
     )
 
@@ -154,6 +169,10 @@ def build_project_config(
     payload.setdefault(
         "verification",
         {"static": [], "targeted": [], "broader": [], "runtime": []},
+    )
+    payload.setdefault(
+        "proof",
+        {"output_directory": ".ai-powerkit/proofs"},
     )
     payload.setdefault(
         "policy",

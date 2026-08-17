@@ -2,6 +2,8 @@ __pycache__/
 *.py[cod]
 .DS_Store
 .ai-powerkit/install-manifest.local.json
+.ai-powerkit/proofs/
+.ai-powerkit/verification/
 dist/
 build/
 *.egg-info/

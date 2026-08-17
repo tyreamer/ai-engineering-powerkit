@@ -793,11 +793,16 @@ class ToolingTests(unittest.TestCase):
             target = Path(temp)
             config_dir = target / ".ai-powerkit"
             config_dir.mkdir()
+            (target / "verification-output.txt").write_text(
+                "OUTPUT_MUST_NOT_BE_STORED\n", encoding="utf-8"
+            )
             (config_dir / "project.json").write_text(
                 json.dumps(
                     {
                         "verification": {
-                            "static": [f'{PYTHON} -c "print(123)"'],
+                            "static": [
+                                f'{PYTHON} -c "print(open(\'verification-output.txt\').read())"'
+                            ],
                             "targeted": [],
                             "broader": [],
                             "runtime": [],
@@ -812,10 +817,19 @@ class ToolingTests(unittest.TestCase):
                 str(target),
                 "--levels",
                 "static",
+                "--evidence-out",
+                ".ai-powerkit/verification/result.json",
                 cwd=target,
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("Verification passed", result.stdout)
+            evidence = json.loads(
+                (target / ".ai-powerkit/verification/result.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(evidence["records"][0]["status"], "passed")
+            self.assertNotIn("OUTPUT_MUST_NOT_BE_STORED", json.dumps(evidence))
 
     def test_verification_runner_rejects_empty_proof_by_default(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
