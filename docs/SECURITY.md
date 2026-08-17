@@ -29,6 +29,9 @@ AI-assistant customization has its own supply-chain risk.
 - Refuse unmanaged artifact conflicts before any installation mutation.
 - Reject symlinked installer destinations and release inputs so a cloned repository cannot redirect writes or archive external content.
 - Package only reviewed Git-tracked regular files.
+- Store managed paths relative to the consumer root and reject absolute or parent-traversal paths.
+- Record ownership kinds and content digests; refuse stale pruning or uninstall when they disagree.
+- Resolve explicit tags or commits for consumers instead of silently tracking `main`.
 - Review `.ai-powerkit/project.json` as executable code before running verification.
 
 ## Hook policy

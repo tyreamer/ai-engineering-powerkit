@@ -33,6 +33,37 @@ COPILOT_TOOL_ALIASES = {
     "playwright/*",
 }
 CLAUDE_TOOL_ALIASES = {"Read", "Grep", "Glob", "Edit", "Write", "Bash"}
+PK_MODES = {
+    "auto",
+    "feature",
+    "bug",
+    "review",
+    "resume",
+    "architecture",
+    "ui",
+    "dependency",
+    "deep",
+}
+PK_DEPTHS = {"FAST", "STANDARD", "DEEP", "HIGH_RISK"}
+PK_ROUTING_CATEGORIES = {
+    "tiny_local_change",
+    "normal_feature",
+    "ambiguous_material_feature",
+    "photohelm_vertical_slice",
+    "reproducible_bug",
+    "difficult_bug",
+    "review_before_merge",
+    "context_recovery",
+    "architecture_migration",
+    "screenshot_ui",
+    "dependency_evaluation",
+    "high_risk_security",
+    "deep_cross_cutting",
+    "plan_only",
+    "no_write",
+    "no_heavyweight",
+    "explicit_override",
+}
 
 
 def parse_frontmatter(path: Path) -> tuple[dict[str, Any], str]:
@@ -253,6 +284,216 @@ def validate_agent_adapters(expected_agents: set[str], errors: list[str]) -> Non
             )
 
 
+def validate_pk_command(known_skills: set[str], errors: list[str]) -> None:
+    command_root = ROOT / ".agents/skills/pk"
+    skill_path = command_root / "SKILL.md"
+    routing_path = command_root / "references/routing.md"
+    manifest_path = command_root / "references/command-manifest.json"
+    cases_path = command_root / "evals/routing-cases.json"
+
+    manifest = validate_json(manifest_path, errors)
+    if not isinstance(manifest, dict):
+        return
+    if manifest.get("schema_version") != 1:
+        errors.append(f"{manifest_path.relative_to(ROOT)}: schema_version must be 1")
+    if manifest.get("command") != "pk":
+        errors.append(f"{manifest_path.relative_to(ROOT)}: command must be 'pk'")
+    if manifest.get("default_mode") != "auto" or manifest.get("help_mode") != "help":
+        errors.append(
+            f"{manifest_path.relative_to(ROOT)}: default_mode/help_mode must be auto/help"
+        )
+    global_skills = manifest.get("global_skills")
+    if global_skills != ["prompt-preflight", "workload-router"]:
+        errors.append(
+            f"{manifest_path.relative_to(ROOT)}: global_skills must be prompt-preflight and "
+            "workload-router"
+        )
+
+    modes = manifest.get("modes")
+    if not isinstance(modes, dict) or set(modes) != PK_MODES:
+        found = sorted(modes) if isinstance(modes, dict) else []
+        errors.append(
+            f"{manifest_path.relative_to(ROOT)}: expected modes {sorted(PK_MODES)}, found {found}"
+        )
+    elif isinstance(modes, dict):
+        for mode, payload in modes.items():
+            if not isinstance(payload, dict):
+                errors.append(f"{manifest_path.relative_to(ROOT)}: mode {mode} must be an object")
+                continue
+            primary = payload.get("primary_skills")
+            conditional = payload.get("conditional_skills")
+            for key, values in (("primary_skills", primary), ("conditional_skills", conditional)):
+                if not isinstance(values, list) or any(not isinstance(value, str) for value in values):
+                    errors.append(
+                        f"{manifest_path.relative_to(ROOT)}: mode {mode} {key} must be a string list"
+                    )
+                    continue
+                unknown = sorted(set(values) - known_skills)
+                if unknown:
+                    errors.append(
+                        f"{manifest_path.relative_to(ROOT)}: mode {mode} references unknown skills: "
+                        f"{', '.join(unknown)}"
+                    )
+            if isinstance(primary, list) and isinstance(conditional, list):
+                overlap = sorted(set(primary) & set(conditional))
+                if overlap:
+                    errors.append(
+                        f"{manifest_path.relative_to(ROOT)}: mode {mode} duplicates skills: "
+                        f"{', '.join(overlap)}"
+                    )
+                global_overlap = sorted((set(primary) | set(conditional)) & set(global_skills or []))
+                if global_overlap:
+                    errors.append(
+                        f"{manifest_path.relative_to(ROOT)}: mode {mode} repeats global skills: "
+                        f"{', '.join(global_overlap)}"
+                    )
+
+    adapters = manifest.get("adapters")
+    if not isinstance(adapters, dict) or set(adapters) != {"codex", "claude", "copilot"}:
+        errors.append(
+            f"{manifest_path.relative_to(ROOT)}: adapters must cover codex, claude, and copilot"
+        )
+    else:
+        expected_invocations = {"codex": "$pk", "claude": "/pk", "copilot": "/pk"}
+        expected_skill_roots = {
+            "codex": (".agents/skills", ".agents/skills"),
+            "claude": (".claude/skills", ".claude/skills"),
+            "copilot": (".agents/skills", ".agents/skills"),
+        }
+        for platform, invocation in expected_invocations.items():
+            payload = adapters.get(platform)
+            if not isinstance(payload, dict) or payload.get("invocation") != invocation:
+                errors.append(
+                    f"{manifest_path.relative_to(ROOT)}: {platform} invocation must be {invocation}"
+                )
+                continue
+            expected_project, expected_user = expected_skill_roots[platform]
+            if (
+                payload.get("project_skill_root") != expected_project
+                or payload.get("user_skill_root") != expected_user
+            ):
+                errors.append(
+                    f"{manifest_path.relative_to(ROOT)}: {platform} skill roots are inconsistent"
+                )
+        codex = adapters.get("codex", {})
+        claude = adapters.get("claude", {})
+        if isinstance(codex, dict) and codex.get("literal_slash") is not False:
+            errors.append(
+                f"{manifest_path.relative_to(ROOT)}: Codex must document non-literal slash support"
+            )
+        if isinstance(claude, dict) and claude.get("literal_slash") is not True:
+            errors.append(
+                f"{manifest_path.relative_to(ROOT)}: Claude must document literal slash support"
+            )
+        copilot = adapters.get("copilot", {})
+        if isinstance(copilot, dict):
+            if copilot.get("user_invocation") != "ask Copilot to use the pk skill":
+                errors.append(
+                    f"{manifest_path.relative_to(ROOT)}: Copilot user-scope invocation is invalid"
+                )
+            source_value = copilot.get("project_prompt_source")
+            destination = copilot.get("project_prompt_destination")
+            if not isinstance(source_value, str):
+                errors.append(
+                    f"{manifest_path.relative_to(ROOT)}: Copilot project prompt source is required"
+                )
+            else:
+                source = ROOT / source_value
+                if not source.is_file():
+                    errors.append(f"{source_value}: Copilot command adapter is missing")
+                else:
+                    text = source.read_text(encoding="utf-8")
+                    if MANAGED_MARKER not in text:
+                        errors.append(f"{source_value}: missing managed installer marker")
+                    if "../../.agents/skills/pk/SKILL.md" not in text:
+                        errors.append(f"{source_value}: must reference the canonical pk skill")
+                    if len(text.splitlines()) > 40:
+                        errors.append(f"{source_value}: command adapter must stay thin")
+            if destination != ".github/prompts/pk.prompt.md":
+                errors.append(
+                    f"{manifest_path.relative_to(ROOT)}: unexpected Copilot prompt destination"
+                )
+
+    if skill_path.is_file() and len(skill_path.read_text(encoding="utf-8").splitlines()) > 200:
+        errors.append(f"{skill_path.relative_to(ROOT)}: command entrypoint must stay under 200 lines")
+    if not routing_path.is_file():
+        errors.append(f"{routing_path.relative_to(ROOT)}: routing reference is missing")
+    elif len(routing_path.read_text(encoding="utf-8").splitlines()) > 300:
+        errors.append(f"{routing_path.relative_to(ROOT)}: routing reference is too large")
+
+    routing_cases = validate_json(cases_path, errors)
+    if not isinstance(routing_cases, dict):
+        return
+    if routing_cases.get("schema_version") != 1 or routing_cases.get("command") != "pk":
+        errors.append(f"{cases_path.relative_to(ROOT)}: invalid schema_version or command")
+    cases = routing_cases.get("cases")
+    if not isinstance(cases, list) or len(cases) < len(PK_ROUTING_CATEGORIES):
+        errors.append(
+            f"{cases_path.relative_to(ROOT)}: at least {len(PK_ROUTING_CATEGORIES)} cases are required"
+        )
+        return
+
+    seen_ids: set[str] = set()
+    seen_categories: set[str] = set()
+    seen_modes: set[str] = set()
+    for index, case in enumerate(cases):
+        if not isinstance(case, dict):
+            errors.append(f"{cases_path.relative_to(ROOT)}: case {index} must be an object")
+            continue
+        case_id = str(case.get("id", "")).strip()
+        category = str(case.get("category", "")).strip()
+        mode = str(case.get("command_mode", "")).strip()
+        if not case_id or case_id in seen_ids:
+            errors.append(f"{cases_path.relative_to(ROOT)}: missing or duplicate case id {case_id!r}")
+        seen_ids.add(case_id)
+        seen_categories.add(category)
+        seen_modes.add(mode)
+        if not str(case.get("invocation", "")).strip():
+            errors.append(f"{cases_path.relative_to(ROOT)}: {case_id} invocation is required")
+        if mode not in PK_MODES:
+            errors.append(f"{cases_path.relative_to(ROOT)}: {case_id} has invalid command_mode")
+        if case.get("expected_depth") not in PK_DEPTHS:
+            errors.append(f"{cases_path.relative_to(ROOT)}: {case_id} has invalid expected_depth")
+        if not str(case.get("expected_intent", "")).strip():
+            errors.append(f"{cases_path.relative_to(ROOT)}: {case_id} expected_intent is required")
+        activate = case.get("must_activate")
+        reject = case.get("must_not_activate")
+        constraints = case.get("preserved_constraints")
+        for key, values in (
+            ("must_activate", activate),
+            ("must_not_activate", reject),
+            ("preserved_constraints", constraints),
+        ):
+            if not isinstance(values, list) or any(not isinstance(value, str) for value in values):
+                errors.append(f"{cases_path.relative_to(ROOT)}: {case_id} {key} must be a string list")
+        if isinstance(activate, list) and isinstance(reject, list):
+            unknown = sorted((set(activate) | set(reject)) - known_skills)
+            if unknown:
+                errors.append(
+                    f"{cases_path.relative_to(ROOT)}: {case_id} references unknown skills: "
+                    f"{', '.join(unknown)}"
+                )
+            overlap = sorted(set(activate) & set(reject))
+            if overlap:
+                errors.append(
+                    f"{cases_path.relative_to(ROOT)}: {case_id} both requires and rejects "
+                    f"{', '.join(overlap)}"
+                )
+
+    missing_categories = sorted(PK_ROUTING_CATEGORIES - seen_categories)
+    if missing_categories:
+        errors.append(
+            f"{cases_path.relative_to(ROOT)}: missing routing categories: "
+            f"{', '.join(missing_categories)}"
+        )
+    missing_modes = sorted(PK_MODES - seen_modes)
+    if missing_modes:
+        errors.append(
+            f"{cases_path.relative_to(ROOT)}: explicit/automatic mode coverage is missing: "
+            f"{', '.join(missing_modes)}"
+        )
+
+
 def main() -> int:
     errors: list[str] = []
     warnings: list[str] = []
@@ -283,6 +524,81 @@ def main() -> int:
             continue
         if path.is_symlink():
             errors.append(f"{path.relative_to(ROOT)}: repository customizations must not use symlinks")
+
+    version = catalog.get("version")
+    default_profiles: list[str] | None = None
+    distribution_path = ROOT / "manifests" / "powerkit.json"
+    distribution = validate_json(distribution_path, errors)
+    if isinstance(distribution, dict):
+        if distribution.get("powerkit_version") != version:
+            errors.append("manifests/powerkit.json version must match catalog.json")
+        if distribution.get("bootstrap") != "BOOTSTRAP.md":
+            errors.append("manifests/powerkit.json bootstrap must be BOOTSTRAP.md")
+        if set(distribution.get("supported_platforms", [])) != {
+            "codex",
+            "claude",
+            "copilot",
+        }:
+            errors.append("manifests/powerkit.json supported_platforms is invalid")
+        release = distribution.get("release")
+        expected_tag = f"v{version}"
+        if not isinstance(release, dict) or release.get("tag") != expected_tag:
+            errors.append(f"manifests/powerkit.json release.tag must be {expected_tag}")
+        elif f"@{expected_tag}" not in str(release.get("install", "")):
+            errors.append("manifests/powerkit.json release.install must pin release.tag")
+        default_setup = distribution.get("default_setup")
+        candidate_profiles = (
+            default_setup.get("profiles") if isinstance(default_setup, dict) else None
+        )
+        known_profiles = set(catalog.get("profiles", {})) | {"all"}
+        if (
+            not isinstance(candidate_profiles, list)
+            or not candidate_profiles
+            or not all(isinstance(profile, str) and profile in known_profiles for profile in candidate_profiles)
+        ):
+            errors.append("manifests/powerkit.json default_setup.profiles is invalid")
+        else:
+            default_profiles = candidate_profiles
+        for relative in ("bootstrap",):
+            target = distribution.get(relative)
+            if isinstance(target, str) and not (ROOT / target).is_file():
+                errors.append(f"manifests/powerkit.json references missing {target}")
+
+    bootstrap_path = ROOT / "BOOTSTRAP.md"
+    if not bootstrap_path.is_file():
+        errors.append("BOOTSTRAP.md is missing")
+    else:
+        bootstrap = bootstrap_path.read_text(encoding="utf-8")
+        for required in (
+            "manifests/powerkit.json",
+            ".ai-powerkit/project.json",
+            ".ai-powerkit/install-manifest.json",
+            "python3 -m powerkit",
+            "powerkit doctor",
+        ):
+            if required not in bootstrap:
+                errors.append(f"BOOTSTRAP.md must reference {required}")
+        if len(bootstrap.splitlines()) > 180:
+            warnings.append("BOOTSTRAP.md exceeds 180 lines; keep the agent contract concise")
+
+    pyproject = validate_toml(ROOT / "pyproject.toml", errors)
+    if isinstance(pyproject, dict):
+        project = pyproject.get("project")
+        if not isinstance(project, dict) or project.get("version") != version:
+            errors.append("pyproject.toml version must match catalog.json")
+        scripts = project.get("scripts") if isinstance(project, dict) else None
+        if not isinstance(scripts, dict) or scripts.get("powerkit") != "powerkit.cli:main":
+            errors.append("pyproject.toml must expose the powerkit console script")
+
+    project_template = validate_json(ROOT / "templates/project-config.example.json", errors)
+    if isinstance(project_template, dict):
+        powerkit = project_template.get("powerkit")
+        if not isinstance(powerkit, dict) or powerkit.get("version") != version:
+            errors.append("templates/project-config.example.json version must match catalog.json")
+        elif default_profiles is not None and powerkit.get("profiles") != default_profiles:
+            errors.append(
+                "templates/project-config.example.json profiles must match distribution defaults"
+            )
 
     skill_root = ROOT / ".agents" / "skills"
     if not skill_root.is_dir():
@@ -444,6 +760,8 @@ def main() -> int:
                 errors.append(f"catalog skill {name!r} has incorrect profile field")
     if profile_members != discovered_names:
         errors.append("catalog profile membership does not cover every skill exactly once")
+
+    validate_pk_command(discovered_names, errors)
 
     # Cross-skill routing scenarios must reference real skills and unique IDs.
     cross_path = ROOT / "evals" / "cross-skill-scenarios.json"
@@ -631,7 +949,13 @@ def main() -> int:
         validate_toml(path, errors)
 
     # Compile Python source.
-    for path in list((ROOT / "tools").glob("*.py")) + list((ROOT / "hooks").glob("*.py")):
+    python_sources = (
+        list((ROOT / "tools").glob("*.py"))
+        + list((ROOT / "hooks").glob("*.py"))
+        + list((ROOT / "powerkit").glob("*.py"))
+        + [ROOT / "setup.py"]
+    )
+    for path in python_sources:
         try:
             py_compile.compile(str(path), doraise=True)
         except py_compile.PyCompileError as exc:

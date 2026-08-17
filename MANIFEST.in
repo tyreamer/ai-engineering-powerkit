@@ -1,0 +1,8 @@
+include BOOTSTRAP.md catalog.json
+recursive-include .agents/skills *
+recursive-include adapters *
+recursive-include hooks *
+recursive-include manifests *
+recursive-include templates *
+global-exclude *.py[cod]
+prune hooks/__pycache__

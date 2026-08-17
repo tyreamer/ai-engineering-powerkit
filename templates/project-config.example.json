@@ -1,6 +1,18 @@
 {
   "schema_version": 1,
   "project_name": "replace-me",
+  "powerkit": {
+    "version": "0.2.0",
+    "source": {
+      "repository": "https://github.com/tyreamer/ai-engineering-powerkit",
+      "version": "0.2.0",
+      "ref": "v0.2.0"
+    },
+    "profiles": ["all"],
+    "platforms": ["codex"],
+    "agents": true,
+    "hooks_staged": false
+  },
   "verification": {
     "static": [],
     "targeted": [],

@@ -21,16 +21,23 @@
 - Stronger structural, adapter-parity, routing-data, and version validation.
 - Behavioral installation, hook, verification, validator, and package tests.
 
-## v0.2
+## v0.2.0
+
+- Agent-native bootstrap, pinned project state, deterministic lifecycle CLI, safe sync/update/uninstall, and wheel/source/release packaging.
+- Canonical `pk` command skill with automatic routing and eight explicit modes.
+- Progressive-disclosure routing reference and deterministic command manifest.
+- Native `$pk` Codex skill invocation, `/pk` Claude skill invocation, and managed Copilot `/pk` prompt adapter for supported IDEs.
+- Installer, validation, routing-eval, documentation, and safe managed-update support for the command layer.
+
+## v0.3
 
 - Live routing eval runner for Codex, Claude Code, and Copilot where automation is supported.
 - Recorded behavioral evals with scored assertions.
 - Generated adapter synchronization rather than copy-only installation.
-- Update and uninstall commands with three-way merge.
 - Repository-specific command discovery and verification configuration wizard.
 - Skill telemetry that records invocation and outcome without collecting source code.
 
-## v0.3
+## v0.4
 
 - Plugin packaging for supported marketplaces.
 - Signed release artifacts and checksums.

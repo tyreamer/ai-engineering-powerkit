@@ -1,0 +1,6 @@
+interface:
+  display_name: "PowerKit"
+  short_description: "Run an engineering task through PowerKit"
+  default_prompt: "Use $pk to execute this task with the appropriate PowerKit workflow."
+policy:
+  allow_implicit_invocation: false

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0 — 2026-08-17
+
+- Made `BOOTSTRAP.md` and `manifests/powerkit.json` the agent-native discovery and distribution contracts.
+- Added the installable `powerkit` CLI with init, sync, update, status, doctor, config, version, and safe uninstall commands.
+- Added committed project desired state, relocatable schema-v2 install manifests, content digests, idempotent sync, safe stale pruning, and team-clone reconstruction.
+- Added the complete `/pk` command layer with automatic routing, eight explicit task modes, help, constraint preservation, and progressive disclosure.
+- Added native platform invocation mappings: `$pk` for Codex, `/pk` for Claude Code, and a managed `/pk` Copilot prompt-file adapter on supported IDE surfaces.
+- Added deterministic command-manifest validation and 17 routing eval scenarios covering fast, standard, deep, high-risk, explicit-mode, plan-only, no-write, PhotoHelm onboarding, and negative over-orchestration behavior.
+- Made all 24 canonical skills the default installation so every explicit `pk` mode has its specialist workflows while retaining progressive disclosure at runtime.
+- Reworked GitHub onboarding around giving the repository URL to a coding assistant while retaining the hardened legacy installer as a compatibility wrapper.
+
 ## 0.1.1 — 2026-08-16
 
 - Rejected symlinked installer destinations and sources, validated managed ownership markers, preflighted staged hooks and manifests, and made backup identifiers collision-safe.

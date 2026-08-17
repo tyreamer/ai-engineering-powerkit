@@ -1,4 +1,4 @@
-.PHONY: validate test doctor package
+.PHONY: validate test doctor wheel package
 
 validate:
 	python3 tools/validate.py
@@ -8,6 +8,9 @@ test:
 
 doctor:
 	python3 tools/doctor.py --target .
+
+wheel:
+	python3 -m pip wheel . --no-deps --wheel-dir dist/wheels
 
 package: validate
 	python3 tools/package.py

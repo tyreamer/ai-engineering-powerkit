@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import shutil
@@ -11,8 +12,11 @@ import zipfile
 from pathlib import Path
 from unittest import mock
 
+from powerkit import installer as installer_tool
+from powerkit import resources as resources_tool
 from tools import package as package_tool
 from tools import validate as validate_tool
+from tools.release_inventory import select_distribution_files
 
 ROOT = Path(__file__).resolve().parents[1]
 PYTHON = sys.executable
@@ -42,6 +46,16 @@ class ToolingTests(unittest.TestCase):
         result = self.run_cmd("tools/validate.py")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("Validation passed", result.stdout)
+
+    def test_distribution_json_decode_failure_is_controlled(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "catalog.json").write_bytes(b"\xff\xfe")
+            with mock.patch.object(resources_tool, "distribution_root", return_value=root):
+                with self.assertRaisesRegex(
+                    RuntimeError, "Unable to read PowerKit distribution data"
+                ):
+                    resources_tool.read_json("catalog.json")
 
     def test_guard_self_test(self) -> None:
         result = self.run_cmd("hooks/catastrophic_command_guard.py", "--self-test")
@@ -117,6 +131,23 @@ class ToolingTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(list(target.iterdir()), [])
 
+    def test_legacy_installer_defaults_to_all_skills(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp)
+            result = self.run_cmd(
+                "tools/install.py",
+                "--target",
+                str(target),
+                "--platforms",
+                "codex",
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            manifest = json.loads(
+                (target / ".ai-powerkit/install-manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(manifest["profiles"], ["all"])
+            self.assertEqual(len(manifest["skills"]), 24)
+
     def test_each_project_platform_installs_in_isolation(self) -> None:
         expected_paths = {
             "codex": (".agents/skills", "AGENTS.md", ".codex/agents"),
@@ -189,6 +220,17 @@ class ToolingTests(unittest.TestCase):
             self.assertTrue((target / "AGENTS.md").is_file())
             self.assertTrue((target / "CLAUDE.md").is_file())
             self.assertTrue((target / ".github/copilot-instructions.md").is_file())
+            self.assertTrue((target / ".agents/skills/pk/SKILL.md").is_file())
+            self.assertTrue((target / ".claude/skills/pk/SKILL.md").is_file())
+            copilot_prompt = target / ".github/prompts/pk.prompt.md"
+            self.assertTrue(copilot_prompt.is_file())
+            self.assertIn(
+                "../../.agents/skills/pk/SKILL.md",
+                copilot_prompt.read_text(encoding="utf-8"),
+            )
+            self.assertTrue(
+                (copilot_prompt.parent / "../../.agents/skills/pk/SKILL.md").resolve().is_file()
+            )
             self.assertEqual(len(list((target / ".codex/agents").glob("*.toml"))), 6)
             self.assertEqual(len(list((target / ".claude/agents").glob("*.md"))), 6)
             self.assertEqual(len(list((target / ".github/agents").glob("*.agent.md"))), 6)
@@ -196,7 +238,18 @@ class ToolingTests(unittest.TestCase):
                 (target / ".ai-powerkit/install-manifest.json").read_text(encoding="utf-8")
             )
             self.assertEqual(manifest["version"], catalog["version"])
-            self.assertTrue((target / ".ai-powerkit/backups").is_dir())
+            self.assertEqual(manifest["schema_version"], 2)
+            self.assertTrue(manifest["managed_assets"])
+            self.assertTrue(all(not Path(item).is_absolute() for item in manifest["files"]))
+            self.assertEqual(manifest["commands"], ["pk"])
+            self.assertEqual(
+                manifest["command_adapters"],
+                {"claude": "/pk", "codex": "$pk", "copilot": "/pk"},
+            )
+            self.assertFalse(
+                (target / ".ai-powerkit/backups").exists(),
+                "a no-op reinstall must not create backups or mutate managed pk assets",
+            )
 
     def test_install_refuses_unmanaged_skill_before_any_mutation(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -238,11 +291,196 @@ class ToolingTests(unittest.TestCase):
                 "--include-agents",
             )
             self.assertEqual(result.returncode, 2)
-            self.assertIn("Refusing to overwrite unmanaged agent file", result.stderr)
+            self.assertIn("Refusing to overwrite unmanaged file", result.stderr)
             self.assertEqual(agent.read_text(encoding="utf-8"), original)
             self.assertFalse((target / ".agents/skills").exists())
             self.assertFalse((target / "AGENTS.md").exists())
             self.assertFalse((target / ".ai-powerkit/install-manifest.json").exists())
+
+    def test_install_refuses_unmanaged_command_adapter_before_any_mutation(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp)
+            prompt = target / ".github/prompts/pk.prompt.md"
+            prompt.parent.mkdir(parents=True)
+            original = "# Team-owned pk prompt\n"
+            prompt.write_text(original, encoding="utf-8")
+            result = self.run_cmd(
+                "tools/install.py",
+                "--target",
+                str(target),
+                "--profiles",
+                "foundation",
+                "--platforms",
+                "copilot",
+            )
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("Refusing to overwrite unmanaged file", result.stderr)
+            self.assertEqual(prompt.read_text(encoding="utf-8"), original)
+            self.assertFalse((target / ".agents/skills").exists())
+            self.assertFalse((target / ".github/copilot-instructions.md").exists())
+            self.assertFalse((target / ".ai-powerkit/install-manifest.json").exists())
+
+    def test_platform_relevant_pk_adapters(self) -> None:
+        expected = {
+            "codex": {
+                ".agents/skills/pk/SKILL.md",
+                "AGENTS.md",
+            },
+            "claude": {
+                ".claude/skills/pk/SKILL.md",
+                "CLAUDE.md",
+            },
+            "copilot": {
+                ".agents/skills/pk/SKILL.md",
+                ".github/copilot-instructions.md",
+                ".github/prompts/pk.prompt.md",
+            },
+        }
+        forbidden = {
+            "codex": {".claude/skills/pk/SKILL.md", ".github/prompts/pk.prompt.md"},
+            "claude": {".agents/skills/pk/SKILL.md", ".github/prompts/pk.prompt.md"},
+            "copilot": {".claude/skills/pk/SKILL.md"},
+        }
+        for platform in ("codex", "claude", "copilot"):
+            with self.subTest(platform=platform), tempfile.TemporaryDirectory() as temp:
+                target = Path(temp)
+                result = self.run_cmd(
+                    "tools/install.py",
+                    "--target",
+                    str(target),
+                    "--profiles",
+                    "foundation",
+                    "--platforms",
+                    platform,
+                )
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                for relative in expected[platform]:
+                    self.assertTrue((target / relative).is_file(), relative)
+                for relative in forbidden[platform]:
+                    self.assertFalse((target / relative).exists(), relative)
+
+    def test_command_adapter_is_not_installed_when_pk_is_not_selected(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp)
+            result = self.run_cmd(
+                "tools/install.py",
+                "--target",
+                str(target),
+                "--profiles",
+                "quality",
+                "--platforms",
+                "copilot",
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertFalse((target / ".agents/skills/pk").exists())
+            self.assertFalse((target / ".github/prompts/pk.prompt.md").exists())
+            manifest = json.loads(
+                (target / ".ai-powerkit/install-manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(manifest["commands"], [])
+            self.assertEqual(manifest["command_adapters"], {})
+
+    def test_command_manifest_paths_cannot_escape_install_roots(self) -> None:
+        spec = importlib.util.spec_from_file_location("powerkit_install", ROOT / "tools/install.py")
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        with self.assertRaisesRegex(RuntimeError, "outside its root"):
+            module.confined_manifest_path(ROOT, "../outside.md", "test")
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            destination = root / "real"
+            destination.mkdir()
+            link = root / "linked"
+            try:
+                link.symlink_to(destination, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlinks unavailable: {exc}")
+            with self.assertRaisesRegex(RuntimeError, "uses a symlink"):
+                module.confined_manifest_path(root, "linked/prompt.md", "test")
+
+    def test_user_scope_copilot_does_not_claim_literal_prompt_command(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp)
+            env = os.environ.copy()
+            env["HOME"] = str(target)
+            result = self.run_cmd(
+                "tools/install.py",
+                "--scope",
+                "user",
+                "--profiles",
+                "foundation",
+                "--platforms",
+                "codex,claude,copilot",
+                env=env,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertTrue((target / ".agents/skills/pk/SKILL.md").is_file())
+            self.assertTrue((target / ".claude/skills/pk/SKILL.md").is_file())
+            self.assertFalse((target / ".github/prompts/pk.prompt.md").exists())
+            manifest = json.loads(
+                (target / ".ai-powerkit/install-manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(
+                manifest["command_adapters"]["copilot"],
+                "ask Copilot to use the pk skill",
+            )
+
+    def test_pk_routing_eval_coverage_and_constraints(self) -> None:
+        root = ROOT / ".agents/skills/pk"
+        manifest = json.loads(
+            (root / "references/command-manifest.json").read_text(encoding="utf-8")
+        )
+        routing = json.loads((root / "evals/routing-cases.json").read_text(encoding="utf-8"))
+        self.assertEqual(
+            set(manifest["modes"]),
+            {"auto", "feature", "bug", "review", "resume", "architecture", "ui", "dependency", "deep"},
+        )
+        by_category = {case["category"]: case for case in routing["cases"]}
+        self.assertGreaterEqual(len(by_category), 17)
+        self.assertIn("plan_only", by_category["plan_only"]["preserved_constraints"])
+        self.assertIn("no_write", by_category["no_write"]["preserved_constraints"])
+        self.assertEqual(by_category["explicit_override"]["command_mode"], "review")
+        self.assertEqual(by_category["no_heavyweight"]["expected_depth"], "FAST")
+        self.assertIn(
+            "engineering-task-orchestrator",
+            by_category["no_heavyweight"]["must_not_activate"],
+        )
+        self.assertEqual(by_category["photohelm_vertical_slice"]["expected_intent"], "feature")
+        self.assertIn(
+            "vertical-slice-planner",
+            by_category["photohelm_vertical_slice"]["must_activate"],
+        )
+
+    def test_pk_help_matches_explicit_modes(self) -> None:
+        root = ROOT / ".agents/skills/pk"
+        manifest = json.loads(
+            (root / "references/command-manifest.json").read_text(encoding="utf-8")
+        )
+        skill = (root / "SKILL.md").read_text(encoding="utf-8")
+        for mode in set(manifest["modes"]) - {manifest["default_mode"]}:
+            self.assertIn(f"/pk {mode}", skill)
+        self.assertIn("/pk help", skill)
+        self.assertLessEqual(len(skill.splitlines()), 200)
+
+    def test_install_dry_run_reports_command_without_mutation(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp)
+            result = self.run_cmd(
+                "tools/install.py",
+                "--target",
+                str(target),
+                "--profiles",
+                "foundation",
+                "--platforms",
+                "copilot",
+                "--dry-run",
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("copy file: .github/prompts/pk.prompt.md", result.stdout)
+            self.assertIn("PowerKit command installed: copilot /pk", result.stdout)
+            self.assertEqual(list(target.iterdir()), [])
 
     def test_install_refuses_malformed_instruction_markers_before_any_mutation(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -355,6 +593,22 @@ class ToolingTests(unittest.TestCase):
             backup_root = target / ".ai-powerkit/backups"
             if backup_root.exists():
                 self.assertEqual(list(backup_root.rglob("external-secret.txt")), [])
+
+    def test_distribution_source_preflight_rejects_symlinked_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as temp, tempfile.TemporaryDirectory() as outside_temp:
+            root = Path(temp)
+            outside = Path(outside_temp)
+            source = outside / "agent.toml"
+            source.write_text("external\n", encoding="utf-8")
+            try:
+                (root / "adapters").symlink_to(outside, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"symlinks unavailable: {exc}")
+            with mock.patch.object(installer_tool, "ROOT", root):
+                with self.assertRaisesRegex(RuntimeError, "must not use a symlink"):
+                    installer_tool.preflight_distribution_source(
+                        root / "adapters/agent.toml"
+                    )
 
     def test_stage_hooks_refuses_unmanaged_destination_before_mutation(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -615,10 +869,15 @@ class ToolingTests(unittest.TestCase):
             duplicate = copy / ".claude/skills/fake/SKILL.md"
             duplicate.parent.mkdir(parents=True)
             duplicate.write_text("---\nname: fake\ndescription: use fake\n---\nbody\n", encoding="utf-8")
+            template_path = copy / "templates/project-config.example.json"
+            template = json.loads(template_path.read_text(encoding="utf-8"))
+            template["powerkit"]["profiles"] = ["foundation"]
+            template_path.write_text(json.dumps(template, indent=2) + "\n", encoding="utf-8")
             result = self.run_cmd(str(copy / "tools/validate.py"), cwd=copy)
             self.assertEqual(result.returncode, 1)
             self.assertIn("versions differ", result.stdout)
             self.assertIn("canonical skill bodies belong only", result.stdout)
+            self.assertIn("profiles must match distribution defaults", result.stdout)
 
     def test_validator_accepts_copilot_web_alias_and_rejects_unknown_alias(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -687,6 +946,47 @@ class ToolingTests(unittest.TestCase):
                 with mock.patch.object(package_tool.subprocess, "run", return_value=completed):
                     with self.assertRaisesRegex(RuntimeError, "refusing tracked symlink"):
                         package_tool.tracked_release_files()
+            finally:
+                link.unlink(missing_ok=True)
+
+    def test_wheel_inventory_excludes_untracked_files_and_rejects_symlinks(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            top = root / "catalog.json"
+            tracked = root / "assets/tracked.txt"
+            untracked = root / "assets/untracked-secret.txt"
+            tracked.parent.mkdir(parents=True)
+            top.write_text("{}\n", encoding="utf-8")
+            tracked.write_text("tracked\n", encoding="utf-8")
+            untracked.write_text("secret\n", encoding="utf-8")
+            selected = select_distribution_files(
+                root,
+                (Path("catalog.json"),),
+                (Path("assets"),),
+                {Path("catalog.json"), Path("assets/tracked.txt")},
+            )
+            self.assertEqual(selected, [Path("catalog.json"), Path("assets/tracked.txt")])
+
+            external = root / "outside.txt"
+            external.write_text("outside\n", encoding="utf-8")
+            link = root / "assets/tracked-link.txt"
+            try:
+                link.symlink_to(external)
+            except OSError as exc:
+                self.skipTest(f"symlinks unavailable: {exc}")
+            external.unlink()
+            try:
+                with self.assertRaisesRegex(RuntimeError, "symlinked wheel source"):
+                    select_distribution_files(
+                        root,
+                        (Path("catalog.json"),),
+                        (Path("assets"),),
+                        {
+                            Path("catalog.json"),
+                            Path("assets/tracked.txt"),
+                            Path("assets/tracked-link.txt"),
+                        },
+                    )
             finally:
                 link.unlink(missing_ok=True)
 

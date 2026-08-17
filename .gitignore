@@ -4,4 +4,5 @@ __pycache__/
 .ai-powerkit/install-manifest.local.json
 dist/
 build/
+*.egg-info/
 *.zip

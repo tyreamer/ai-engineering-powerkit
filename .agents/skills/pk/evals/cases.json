@@ -1,0 +1,25 @@
+{
+  "skill": "pk",
+  "positive_cases": [
+    {
+      "prompt": "/pk Make service onboarding dramatically easier from a website or screenshot."
+    },
+    {
+      "prompt": "$pk bug The save dialog sometimes reports success but reloads stale data."
+    },
+    {
+      "prompt": "Run this through the PowerKit command layer and choose the right workflow."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "What does PK mean in pharmacokinetics?"
+    },
+    {
+      "prompt": "Use evidence-first-debugging directly on this intermittent test failure."
+    },
+    {
+      "prompt": "Rename the heading and run its closest unit test."
+    }
+  ]
+}

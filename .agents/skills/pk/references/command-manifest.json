@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "command": "pk",
+  "default_mode": "auto",
+  "help_mode": "help",
+  "global_skills": [
+    "prompt-preflight",
+    "workload-router"
+  ],
+  "modes": {
+    "auto": {
+      "primary_skills": [],
+      "conditional_skills": [
+        "engineering-task-orchestrator",
+        "repository-cartographer",
+        "task-contract",
+        "context-recovery",
+        "decision-handoff",
+        "vertical-slice-planner",
+        "change-impact-analysis",
+        "implementation-planner",
+        "parallel-investigator",
+        "evidence-first-debugging",
+        "migration-planner",
+        "verification-loop",
+        "test-gap-hunter",
+        "adversarial-review",
+        "anti-slop-review",
+        "security-privacy-review",
+        "api-contract-guardian",
+        "implementation-critic",
+        "dependency-due-diligence",
+        "ui-evidence-to-spec",
+        "runtime-ux-review"
+      ]
+    },
+    "feature": {
+      "primary_skills": [
+        "engineering-task-orchestrator",
+        "repository-cartographer",
+        "task-contract"
+      ],
+      "conditional_skills": [
+        "change-impact-analysis",
+        "vertical-slice-planner",
+        "implementation-planner",
+        "verification-loop",
+        "test-gap-hunter",
+        "anti-slop-review",
+        "decision-handoff"
+      ]
+    },
+    "bug": {
+      "primary_skills": [
+        "evidence-first-debugging",
+        "verification-loop",
+        "decision-handoff"
+      ],
+      "conditional_skills": [
+        "repository-cartographer",
+        "parallel-investigator",
+        "test-gap-hunter",
+        "anti-slop-review",
+        "adversarial-review"
+      ]
+    },
+    "review": {
+      "primary_skills": [
+        "implementation-critic",
+        "verification-loop",
+        "test-gap-hunter",
+        "anti-slop-review"
+      ],
+      "conditional_skills": [
+        "api-contract-guardian",
+        "security-privacy-review",
+        "runtime-ux-review",
+        "adversarial-review"
+      ]
+    },
+    "resume": {
+      "primary_skills": [
+        "context-recovery",
+        "decision-handoff"
+      ],
+      "conditional_skills": [
+        "engineering-task-orchestrator",
+        "verification-loop",
+        "anti-slop-review"
+      ]
+    },
+    "architecture": {
+      "primary_skills": [
+        "repository-cartographer",
+        "change-impact-analysis",
+        "migration-planner"
+      ],
+      "conditional_skills": [
+        "security-privacy-review",
+        "api-contract-guardian",
+        "adversarial-review",
+        "decision-handoff"
+      ]
+    },
+    "ui": {
+      "primary_skills": [
+        "ui-evidence-to-spec",
+        "runtime-ux-review"
+      ],
+      "conditional_skills": [
+        "repository-cartographer",
+        "task-contract",
+        "engineering-task-orchestrator",
+        "verification-loop",
+        "test-gap-hunter"
+      ]
+    },
+    "dependency": {
+      "primary_skills": [
+        "dependency-due-diligence",
+        "change-impact-analysis"
+      ],
+      "conditional_skills": [
+        "security-privacy-review",
+        "api-contract-guardian",
+        "decision-handoff"
+      ]
+    },
+    "deep": {
+      "primary_skills": [
+        "engineering-task-orchestrator",
+        "verification-loop",
+        "adversarial-review",
+        "decision-handoff"
+      ],
+      "conditional_skills": [
+        "repository-cartographer",
+        "task-contract",
+        "context-recovery",
+        "change-impact-analysis",
+        "vertical-slice-planner",
+        "implementation-planner",
+        "parallel-investigator",
+        "evidence-first-debugging",
+        "migration-planner",
+        "test-gap-hunter",
+        "anti-slop-review",
+        "security-privacy-review",
+        "api-contract-guardian",
+        "implementation-critic",
+        "dependency-due-diligence",
+        "ui-evidence-to-spec",
+        "runtime-ux-review"
+      ]
+    }
+  },
+  "modifiers": {
+    "plan-only": [
+      "--plan-only",
+      "plan only"
+    ],
+    "no-write": [
+      "--no-write",
+      "do not modify files"
+    ]
+  },
+  "adapters": {
+    "codex": {
+      "kind": "agent-skill",
+      "project_skill_root": ".agents/skills",
+      "user_skill_root": ".agents/skills",
+      "invocation": "$pk",
+      "literal_slash": false
+    },
+    "claude": {
+      "kind": "agent-skill-copy",
+      "project_skill_root": ".claude/skills",
+      "user_skill_root": ".claude/skills",
+      "invocation": "/pk",
+      "literal_slash": true
+    },
+    "copilot": {
+      "kind": "agent-skill-and-prompt-file",
+      "project_skill_root": ".agents/skills",
+      "user_skill_root": ".agents/skills",
+      "invocation": "/pk",
+      "user_invocation": "ask Copilot to use the pk skill",
+      "literal_slash": "supported-ide-surfaces",
+      "project_prompt_source": "adapters/copilot/prompts/pk.prompt.md",
+      "project_prompt_destination": ".github/prompts/pk.prompt.md"
+    }
+  }
+}

@@ -2,14 +2,34 @@
 
 PowerKit is meant to let a developer communicate at the outcome and decision layer without accepting vague, unverified implementation.
 
+## Command-first usage
+
+For normal work, start with `/pk` and describe the outcome in ordinary language. Use `$pk` in Codex, whose native explicit skill syntax differs. PowerKit selects the task path and depth; the user does not need to name the underlying skills.
+
+Use an explicit mode only when you want to constrain the primary workflow:
+
+```text
+/pk feature
+/pk bug
+/pk review
+/pk resume
+/pk architecture
+/pk ui
+/pk dependency
+/pk deep
+```
+
+The older task prompts and direct skill invocations remain supported for advanced users, automation, and narrowly controlled workflows.
+
 The default pattern is:
 
-1. State the desired outcome in normal language.
+1. Invoke the PowerKit command and state the desired outcome in normal language.
 2. Let Prompt Preflight inspect context and normalize the request.
-3. Let Workload Router select a fast, standard, deep, or parallel-read workflow.
-4. Keep one agent responsible for implementation.
-5. Require evidence from tests, runtime behavior, and diff review before completion.
-6. Preserve a handoff when the work crosses sessions or people.
+3. Let Workload Router select fast, standard, deep, or high-risk depth.
+4. Let the command choose the relevant task path and installed skills.
+5. Keep one agent responsible for implementation.
+6. Require evidence from tests, runtime behavior, and diff review before completion.
+7. Preserve a handoff when the work crosses sessions or people.
 
 ## Fast path: small and reversible
 
@@ -21,6 +41,8 @@ Expected behavior:
 - Make the smallest change.
 - Run targeted verification.
 - Do not create a large plan or delegate unnecessarily.
+
+`/pk` should select this path automatically. A tiny request is a routing test: invoking PowerKit must not turn it into architecture analysis or a multi-agent review.
 
 ## Feature path: outcome to vertical slice
 

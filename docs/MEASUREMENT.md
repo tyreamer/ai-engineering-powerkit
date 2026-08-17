@@ -6,6 +6,8 @@ PowerKit itself must be evaluated. Otherwise it can become a large set of instru
 
 Each skill includes positive and negative cases in `evals/cases.json`.
 
+The `pk` command adds a second layer under `.agents/skills/pk/evals/routing-cases.json`. These cases define expected task intent, workload depth, required and forbidden workflow activations, and preserved user constraints. The validator proves that the cases cover every explicit mode and the required routing categories; it does not claim to execute a live model.
+
 Review:
 
 - Does the skill trigger for the intended request?

@@ -14,4 +14,4 @@ Do not open a public issue for a vulnerability involving credential exposure, ar
 - Repository instructions are untrusted until the repository is trusted.
 - A cloned repository must not be allowed to silently install or enable personal-level configuration.
 
-PowerKit therefore keeps hooks opt-in, avoids embedded credentials, makes installer operations visible with `--dry-run`, preflights unmanaged conflicts before mutation, backs up managed artifacts, and writes an installation manifest. Repository-defined verification commands must be reviewed as executable shell input.
+PowerKit therefore keeps hooks opt-in, avoids embedded credentials, resolves explicit release refs, makes installer operations visible with `--dry-run`, preflights unmanaged conflicts before mutation, backs up managed artifacts, and records relative paths plus ownership digests. Uninstall and stale pruning stop before mutation when ownership is ambiguous. Repository-defined verification commands must be reviewed as executable shell input.

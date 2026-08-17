@@ -1,12 +1,13 @@
 {
   "schema_version": 1,
   "name": "AI Engineering PowerKit",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "canonical_skill_root": ".agents/skills",
   "profiles": {
     "foundation": {
-      "description": "Default reasoning and context discipline for nearly every team.",
+      "description": "Command entrypoint, default reasoning, and context discipline for nearly every team.",
       "skills": [
+        "pk",
         "prompt-preflight",
         "engineering-task-orchestrator",
         "repository-cartographer",
@@ -126,6 +127,12 @@
       "title": "Parallel Investigator",
       "profile": "delivery",
       "description": "Coordinates bounded read-heavy subagents and synthesizes their evidence. Use when independent code, test, documentation, security, or runtime questions can be investigated concurrently without overlapping writes."
+    },
+    {
+      "name": "pk",
+      "title": "PowerKit Command Layer",
+      "profile": "foundation",
+      "description": "Routes a developer request through the PowerKit command layer and selects the lightest justified workflow. Use when the user invokes /pk or $pk, or explicitly asks PowerKit to choose a workflow; do not use for ordinary requests that do not ask for PowerKit routing."
     },
     {
       "name": "prompt-preflight",

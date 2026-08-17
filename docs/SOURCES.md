@@ -6,9 +6,13 @@ Platform customization changes quickly. The links below were checked on **2026-0
 
 - Agent Skills specification: https://agentskills.io/specification
 - Codex skills: https://learn.chatgpt.com/docs/build-skills
+- Codex developer commands: https://learn.chatgpt.com/docs/developer-commands
+- Codex custom prompts deprecation and legacy syntax: https://learn.chatgpt.com/docs/custom-prompts
 - Claude Code skills: https://code.claude.com/docs/en/skills
 - GitHub Copilot agent skills: https://docs.github.com/en/copilot/concepts/agents/about-agent-skills
 - GitHub Copilot code review: https://docs.github.com/en/copilot/concepts/agents/code-review
+- Claude Code commands: https://code.claude.com/docs/en/commands
+- GitHub Copilot agent skills: https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills
 
 ## Instructions and agents
 
@@ -20,6 +24,7 @@ Platform customization changes quickly. The links below were checked on **2026-0
 - GitHub Copilot CLI custom agents: https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/create-custom-agents-for-cli
 - GitHub Copilot customization support matrix: https://docs.github.com/en/copilot/reference/customization-cheat-sheet
 - GitHub Copilot custom-instruction support: https://docs.github.com/en/copilot/reference/custom-instructions-support
+- GitHub Copilot prompt files: https://docs.github.com/en/copilot/how-tos/configure-custom-instructions-in-your-ide/add-repository-instructions-in-your-ide
 
 ## Hooks and distribution
 

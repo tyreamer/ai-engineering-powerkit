@@ -24,6 +24,20 @@ jobs:
         run: python tools/validate.py
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
+      - name: Build and install CLI distribution
+        run: |
+          python -m pip wheel . --no-deps --wheel-dir dist/wheels
+          python -m pip install --force-reinstall dist/wheels/*.whl
+          powerkit --help
+          powerkit version
+      - name: Agent onboarding smoke test
+        run: |
+          consumer="$(mktemp -d)"
+          powerkit init --target "$consumer" --platforms codex,claude,copilot --yes
+          powerkit status --target "$consumer" --json
+          powerkit doctor --target "$consumer" --json
+          powerkit sync --target "$consumer"
+          powerkit uninstall --target "$consumer" --dry-run
       - name: Test hook guard
         run: python hooks/catastrophic_command_guard.py --self-test
       - name: Package

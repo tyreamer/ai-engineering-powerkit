@@ -69,6 +69,10 @@ Assign maintainers for:
 
 Require pull requests for changes to shared skills. Version the toolkit and let repositories pin a reviewed release.
 
+## Team cloning
+
+Commit `.ai-powerkit/project.json` with the approved PowerKit version, source ref, profiles, and platforms. A teammate's coding assistant can then resolve that exact release and run `powerkit sync`; the teammate does not reconstruct the original install command. Treat changes to the PowerKit pin like dependency upgrades and review them deliberately.
+
 ## Success criteria
 
 The rollout succeeds when developers spend more time making product decisions and less time rewriting prompts, while first-pass correctness and evidence quality improve. “People installed it” is not a success metric.
