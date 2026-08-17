@@ -49,7 +49,7 @@ Follow BOOTSTRAP.md, preserve existing project configuration,
 verify the installation, and tell me when PowerKit is ready.
 ```
 
-PowerKit v0.2 provides a machine-readable bootstrap contract and deterministic installation tooling so the assistant can configure the repository from a pinned release instead of manually recreating skills and agent files.
+PowerKit v0.3 provides a machine-readable bootstrap contract and deterministic installation tooling so the assistant can configure the repository from a pinned release instead of manually recreating skills and agent files.
 
 Once installed, explicitly invoke the `pk` skill and describe the task. Native syntax depends on the host:
 
@@ -220,17 +220,27 @@ small always-on metadata
  deeper references only if needed
 ```
 
-The standard v0.2 bootstrap installs all 24 skills so every `pk` mode has its specialist workflows. Installing PowerKit does **not** mean intentionally injecting the entire toolkit into every model request.
+The standard v0.3 bootstrap installs all 24 skills so every `pk` mode has its specialist workflows. Installing PowerKit does **not** mean intentionally injecting the entire toolkit into every model request.
 
 A project can have many capabilities available while a small task loads only what it needs. Exact discovery and loading behavior remains host-dependent.
 
 This matters for latency, context quality, and token usage.
 
+**PowerKit watches its own weight.**
+
+The Context Budget Auditor measures what PowerKit adds to coding-agent context, catches progressive-disclosure regressions, and tells you what to move, shorten, or lazy-load before prompt bloat becomes everyone's problem:
+
+```bash
+powerkit context audit --target .
+```
+
+It reports PowerKit-attributable estimates rather than pretending to know total provider input. Checked-in baselines and `--ci` protect always-on, discovery, and common-path budgets. See [Context budgets](docs/CONTEXT_BUDGETS.md).
+
 ---
 
 # The toolkit
 
-PowerKit v0.2 includes **24 canonical skills** and **6 specialized agent roles**.
+PowerKit v0.3 includes **24 canonical skills** and **6 specialized agent roles**.
 
 The skills cover four broad areas:
 
@@ -300,6 +310,7 @@ PowerKit also includes deterministic tooling for:
 * explicitly selected version updates
 * managed-file ownership and content digests
 * repository status and health checks
+* offline context accounting, recommendations, baselines, and CI budgets
 * static validation
 * release packaging
 * repository-defined verification commands
@@ -384,7 +395,7 @@ PowerKit modifies coding-assistant configuration and can influence how agents op
 
 That deserves the same care as other engineering tooling.
 
-The v0.2 installer and lifecycle commands are designed around:
+The v0.3 installer and lifecycle commands are designed around:
 
 * path-containment checks
 * symlink defenses
@@ -394,6 +405,7 @@ The v0.2 installer and lifecycle commands are designed around:
 * collision-safe backups
 * dry runs for mutating lifecycle commands
 * digest-aware doctor checks
+* offline context-budget inspection with no consumer-code execution
 * stale-file pruning only when ownership remains proven
 * uninstall that refuses ambiguous or changed assets
 * deterministic package construction from reviewed tracked files
@@ -451,7 +463,7 @@ BOOTSTRAP.md         Entry point for coding assistants managing PowerKit
 
 # Project status
 
-PowerKit v0.2 is an integration candidate for:
+PowerKit v0.3 is an integration candidate for:
 
 * OpenAI Codex
 * Anthropic Claude Code

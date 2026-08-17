@@ -23,6 +23,8 @@ PowerKit writes:
 
 The project config is sufficient to reconstruct a team setup. The install manifest is sufficient to check idempotency, health, safe pruning, and safe uninstall.
 
+The optional `powerkit.context_budgets` object configures warning/CI limits. Static release or project comparisons use `.ai-powerkit/context-baseline.json`; observed client traces are deliberately not stored there.
+
 ## Deterministic flow
 
 From an exact tagged release checkout:
@@ -34,6 +36,8 @@ python3 -m powerkit init \
   --yes
 
 python3 -m powerkit doctor --target ../product-repo --json
+
+python3 -m powerkit context audit --target ../product-repo
 ```
 
 `init` defaults to all 24 canonical skills and includes specialized agents. Progressive disclosure still loads only the workflows relevant to a request. The installer does not stage or enable hooks. An agent should pass its known host platform explicitly when repository evidence is ambiguous.
@@ -80,7 +84,7 @@ Normal sync follows the project pin, not `main`. For an explicit update, resolve
 ```bash
 python3 -m powerkit update \
   --target ../product-repo \
-  --version 0.2.0 \
+  --version 0.3.0 \
   --yes
 ```
 
@@ -107,7 +111,7 @@ Project configuration is preserved for team reconstruction unless `--purge-confi
 For a published release tag:
 
 ```bash
-pipx install git+https://github.com/tyreamer/ai-engineering-powerkit.git@v0.2.0
+pipx install git+https://github.com/tyreamer/ai-engineering-powerkit.git@v0.3.0
 ```
 
 This exposes `powerkit`. The wheel contains canonical distribution assets packaged directly from `.agents/skills`, adapters, hooks, and templates; those assets are not duplicated in the source repository.

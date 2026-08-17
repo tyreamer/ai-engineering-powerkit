@@ -9,6 +9,15 @@
     },
     {
       "prompt": "Threat-model this multi-tenant data migration."
+    },
+    {
+      "prompt": "Review the retention and deletion behavior for uploaded customer records."
+    },
+    {
+      "prompt": "Check this parser and dependency update for injection and supply-chain risks."
+    },
+    {
+      "prompt": "Assess abuse paths in this new public account-recovery endpoint."
     }
   ],
   "negative_cases": [

@@ -143,6 +143,13 @@ def build_project_config(
     payload = dict(existing or {})
     payload["schema_version"] = 1
     payload.setdefault("project_name", target.name)
+    existing_powerkit = payload.get("powerkit")
+    existing_budgets = (
+        existing_powerkit.get("context_budgets")
+        if isinstance(existing_powerkit, dict)
+        else None
+    )
+    default_budgets = distribution_manifest().get("context_budgets")
     payload["powerkit"] = {
         "version": distribution_version(),
         "source": source_descriptor(),
@@ -150,6 +157,13 @@ def build_project_config(
         "platforms": list(platforms),
         "agents": agents,
         "hooks_staged": hooks_staged,
+        "context_budgets": dict(
+            existing_budgets
+            if isinstance(existing_budgets, dict)
+            else default_budgets
+            if isinstance(default_budgets, dict)
+            else {}
+        ),
     }
     payload.setdefault(
         "verification",

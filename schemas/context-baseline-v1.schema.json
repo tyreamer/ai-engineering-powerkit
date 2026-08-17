@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tyreamer/ai-engineering-powerkit/schemas/context-baseline-v1.schema.json",
+  "title": "PowerKit Context Baseline v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "powerkit_version", "estimator", "platforms"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "powerkit_version": {"type": "string"},
+    "estimator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "quality"],
+      "properties": {
+        "id": {"type": "string"},
+        "quality": {"enum": ["exact", "estimated"]}
+      }
+    },
+    "platforms": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"enum": ["codex", "claude", "copilot"]},
+      "additionalProperties": {
+        "type": "object",
+        "minProperties": 1,
+        "additionalProperties": false,
+        "required": ["always_on_tokens", "discovery_tokens"],
+        "properties": {
+          "always_on_tokens": {"type": "integer", "minimum": 0},
+          "discovery_tokens": {"type": "integer", "minimum": 0},
+          "fast_path_tokens": {"type": "integer", "minimum": 0},
+          "standard_path_tokens": {"type": "integer", "minimum": 0},
+          "deep_path_tokens": {"type": "integer", "minimum": 0}
+        }
+      }
+    }
+  }
+}

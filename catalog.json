@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "name": "AI Engineering PowerKit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "canonical_skill_root": ".agents/skills",
   "profiles": {
     "foundation": {
@@ -54,13 +54,13 @@
       "name": "adversarial-review",
       "title": "Adversarial Review",
       "profile": "quality",
-      "description": "Challenges high-risk plans, architectures, decisions, or completion claims by trying to falsify their load-bearing assumptions. Use before irreversible work or when concrete counterexamples matter; use implementation-critic for ordinary completed-implementation PR readiness."
+      "description": "Tries to falsify high-risk plans, architectures, decisions, and completion claims. Use when concrete counterexamples matter; do not use for ordinary PR-readiness review."
     },
     {
       "name": "anti-slop-review",
       "title": "Anti-Slop Review",
       "profile": "quality",
-      "description": "Detects superficially complete AI-generated implementation: placeholders, fake integrations, swallowed errors, ungrounded abstractions, dead code, TODO paths, weak tests, scope drift, and claims unsupported by runtime evidence. Use before handoff or PR creation."
+      "description": "Finds placeholders, fake integrations, swallowed errors, dead code, weak tests, and unsupported completion claims. Use before handoff or PR creation; do not use as a general style review."
     },
     {
       "name": "api-contract-guardian",
@@ -108,7 +108,7 @@
       "name": "implementation-critic",
       "title": "Implementation Critic",
       "profile": "quality",
-      "description": "Performs an independent owner-level review of a completed implementation for pull-request readiness, correctness defects, regressions, hidden coupling, unnecessary complexity, and missing proof. Use anti-slop-review for placeholder or fake-integration audits and adversarial-review for pre-decision high-risk plans."
+      "description": "Reviews completed implementations for correctness, regressions, hidden coupling, and proof gaps. Use for PR readiness; do not use for placeholder audits or pre-decision architecture challenges."
     },
     {
       "name": "implementation-planner",
@@ -132,7 +132,7 @@
       "name": "pk",
       "title": "PowerKit Command Layer",
       "profile": "foundation",
-      "description": "Routes a developer request through the PowerKit command layer and selects the lightest justified workflow. Use when the user invokes /pk or $pk, or explicitly asks PowerKit to choose a workflow; do not use for ordinary requests that do not ask for PowerKit routing."
+      "description": "Routes explicit /pk or $pk requests to the lightest justified PowerKit workflow. Use only when the user invokes or asks for PowerKit routing; do not use for ordinary requests."
     },
     {
       "name": "prompt-preflight",
@@ -150,13 +150,13 @@
       "name": "runtime-ux-review",
       "title": "Runtime UX Review",
       "profile": "specialist",
-      "description": "Reviews the actual running interface and user flow rather than only source code or screenshots. Use after UI implementation to verify behavior, friction, accessibility, responsive states, errors, performance perception, and consistency with the intended experience."
+      "description": "Reviews running interfaces for flow, accessibility, responsive states, errors, and perceived performance. Use after UI implementation; do not use for source-only or static-mockup review."
     },
     {
       "name": "security-privacy-review",
       "title": "Security and Privacy Review",
       "profile": "quality",
-      "description": "Reviews code or plans for authentication, authorization, secrets, data exposure, tenancy, retention, injection, supply-chain, and abuse risks. Use whenever a change touches identities, permissions, external input, sensitive data, persistence, integrations, or privileged tools."
+      "description": "Reviews authentication, authorization, secrets, data exposure, tenancy, retention, injection, supply-chain, and abuse risks. Use for identities, permissions, untrusted input, sensitive data, persistence, integrations, or privileged tools; do not use as a generic checklist."
     },
     {
       "name": "task-contract",
@@ -168,7 +168,7 @@
       "name": "test-gap-hunter",
       "title": "Test Gap Hunter",
       "profile": "quality",
-      "description": "Finds missing behavioral coverage and weak tests around a change or subsystem. Use during planning or review to identify untested branches, contracts, failure modes, concurrency, permissions, migrations, and assertions that do not prove the intended behavior."
+      "description": "Finds missing behavioral coverage across failures, contracts, concurrency, permissions, and migrations. Use during planning or review; do not chase coverage percentage or trivial internals."
     },
     {
       "name": "ui-evidence-to-spec",

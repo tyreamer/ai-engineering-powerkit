@@ -1,10 +1,10 @@
 ---
 name: runtime-ux-review
-description: "Reviews the actual running interface and user flow rather than only source code or screenshots. Use after UI implementation to verify behavior, friction, accessibility, responsive states, errors, performance perception, and consistency with the intended experience."
+description: "Reviews running interfaces for flow, accessibility, responsive states, errors, and perceived performance. Use after UI implementation; do not use for source-only or static-mockup review."
 license: MIT
 metadata:
   author: ai-engineering-powerkit
-  version: "0.1.0"
+  version: "0.3.0"
   profile: specialist
 ---
 

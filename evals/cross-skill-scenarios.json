@@ -142,6 +142,22 @@
         "Keep enforcement at trusted boundary",
         "Do not accept caller claims without proof"
       ]
+    },
+    {
+      "id": "context-budget-regression",
+      "prompt": "We added ten new skills. Did PowerKit make every request more expensive, and what should we fix first?",
+      "expected_skills": [
+        "prompt-preflight"
+      ],
+      "allowed_skills": [
+        "workload-router"
+      ],
+      "must": [
+        "Run powerkit context audit for deterministic evidence",
+        "Separate always-on and discovery context from selected skills",
+        "Recommend concrete progressive-disclosure changes",
+        "Do not invent provider-billed token usage"
+      ]
     }
   ]
 }

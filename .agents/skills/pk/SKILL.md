@@ -1,10 +1,10 @@
 ---
 name: pk
-description: "Routes a developer request through the PowerKit command layer and selects the lightest justified workflow. Use when the user invokes /pk or $pk, or explicitly asks PowerKit to choose a workflow; do not use for ordinary requests that do not ask for PowerKit routing."
+description: "Routes explicit /pk or $pk requests to the lightest justified PowerKit workflow. Use only when the user invokes or asks for PowerKit routing; do not use for ordinary requests."
 license: MIT
 metadata:
   author: ai-engineering-powerkit
-  version: "0.2.0"
+  version: "0.3.0"
   profile: foundation
 ---
 

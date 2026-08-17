@@ -1,10 +1,10 @@
 ---
 name: test-gap-hunter
-description: "Finds missing behavioral coverage and weak tests around a change or subsystem. Use during planning or review to identify untested branches, contracts, failure modes, concurrency, permissions, migrations, and assertions that do not prove the intended behavior."
+description: "Finds missing behavioral coverage across failures, contracts, concurrency, permissions, and migrations. Use during planning or review; do not chase coverage percentage or trivial internals."
 license: MIT
 metadata:
   author: ai-engineering-powerkit
-  version: "0.1.0"
+  version: "0.3.0"
   profile: quality
 ---
 

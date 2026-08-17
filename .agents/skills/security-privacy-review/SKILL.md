@@ -1,10 +1,10 @@
 ---
 name: security-privacy-review
-description: "Reviews code or plans for authentication, authorization, secrets, data exposure, tenancy, retention, injection, supply-chain, and abuse risks. Use whenever a change touches identities, permissions, external input, sensitive data, persistence, integrations, or privileged tools."
+description: "Reviews authentication, authorization, secrets, data exposure, tenancy, retention, injection, supply-chain, and abuse risks. Use for identities, permissions, untrusted input, sensitive data, persistence, integrations, or privileged tools; do not use as a generic checklist."
 license: MIT
 metadata:
   author: ai-engineering-powerkit
-  version: "0.1.0"
+  version: "0.3.0"
   profile: quality
 ---
 

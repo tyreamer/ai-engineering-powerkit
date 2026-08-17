@@ -27,6 +27,7 @@ ASSET_ROOTS = (
     Path("adapters"),
     Path("hooks"),
     Path("manifests"),
+    Path("schemas"),
     Path("templates"),
 )
 TOP_LEVEL_ASSETS = (Path("BOOTSTRAP.md"), Path("catalog.json"))

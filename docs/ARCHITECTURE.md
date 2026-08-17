@@ -43,6 +43,10 @@ The command layer does not replace direct skill or agent invocation. It makes th
 - After routing: only the selected workflow skill bodies are loaded.
 - Deep references, scripts, agents, and external tools load only when the selected workflow requires them.
 
+`powerkit context audit` makes this model testable. It builds a vendor-neutral inventory from canonical release metadata or installed managed state, then applies a platform loading model for Codex, Claude, or Copilot. Static estimates, future observed traces, primary-agent paths, and isolated agent prompts remain separate. The auditor is CLI code rather than another always-loaded skill, so ordinary tasks pay no new runtime context.
+
+The detailed `pk` mode recipes live in a second reference that is loaded after intent/depth selection. Automatic FAST routing reads only the compact routing reference.
+
 `pk help` stops at the command skill. A fast local change does not load architecture, migration, security, dependency, UI, or adversarial bodies merely because they are installed.
 
 ## 2. Always-on instructions

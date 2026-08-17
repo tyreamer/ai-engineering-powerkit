@@ -34,6 +34,7 @@ class Check:
     ok: bool
     detail: str
     fix: str | None = None
+    warning: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -371,6 +372,41 @@ def run_health_checks(target: Path) -> HealthReport:
                 None
                 if verification_ok
                 else "Add a verification object; do not invent unverified commands.",
+            )
+        )
+
+    try:
+        # Lazy import avoids coupling installation health to audit implementation startup.
+        from powerkit.context_budget import audit_context, safe_terminal_text
+
+        context_report = audit_context(target).payload
+        context_status = context_report["summary"]["status"]
+        context_warning = context_status in {"watch", "needs_attention"}
+        if context_status == "needs_attention":
+            context_detail = "configured context budget or baseline needs attention"
+        elif context_status == "watch":
+            context_detail = "healthy; one or more context paths are nearing budget"
+        else:
+            context_detail = "healthy"
+        checks.append(
+            Check(
+                "context budget",
+                True,
+                context_detail,
+                "Run `powerkit context audit` for ranked recommendations."
+                if context_warning
+                else None,
+                warning=context_warning,
+            )
+        )
+    except RuntimeError as exc:
+        detail = safe_terminal_text(str(exc))
+        checks.append(
+            Check(
+                "context budget",
+                False,
+                f"audit unavailable: {detail}",
+                "Run `powerkit context audit` and repair the reported inventory problem.",
             )
         )
 
