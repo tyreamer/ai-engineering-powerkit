@@ -1,0 +1,9 @@
+[project]
+name = "ai-engineering-powerkit"
+version = "0.1.0"
+description = "Portable skills, agents, hooks, and evals for AI coding assistants"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+
+[tool.powerkit]
+canonical_skill_root = ".agents/skills"

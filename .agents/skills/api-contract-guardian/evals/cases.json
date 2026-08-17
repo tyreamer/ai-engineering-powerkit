@@ -1,0 +1,22 @@
+{
+  "skill": "api-contract-guardian",
+  "positive_cases": [
+    {
+      "prompt": "Review this response field rename for compatibility."
+    },
+    {
+      "prompt": "Protect consumers while changing this event schema."
+    },
+    {
+      "prompt": "Classify these API changes and design the safe rollout."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Refactor a private helper with no external callers."
+    },
+    {
+      "prompt": "Explain REST at a high level."
+    }
+  ]
+}

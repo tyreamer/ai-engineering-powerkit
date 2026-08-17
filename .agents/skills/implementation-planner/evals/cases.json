@@ -1,0 +1,22 @@
+{
+  "skill": "implementation-planner",
+  "positive_cases": [
+    {
+      "prompt": "Inspect the repo and give me an executable implementation plan for this feature."
+    },
+    {
+      "prompt": "Plan this migration down to likely files, order, and verification."
+    },
+    {
+      "prompt": "Create the implementation sequence after mapping the current flow."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Brainstorm possible product directions without inspecting code."
+    },
+    {
+      "prompt": "Make this one-line edit."
+    }
+  ]
+}

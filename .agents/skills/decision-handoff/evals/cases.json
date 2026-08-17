@@ -1,0 +1,22 @@
+{
+  "skill": "decision-handoff",
+  "positive_cases": [
+    {
+      "prompt": "Create a clean handoff for the next Codex session."
+    },
+    {
+      "prompt": "Summarize what changed, what was verified, and what remains before I open the PR."
+    },
+    {
+      "prompt": "Record the architecture decision and close the task truthfully."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Give me a generic summary of this article."
+    },
+    {
+      "prompt": "Explain the code without changing it."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "skill": "implementation-critic",
+  "positive_cases": [
+    {
+      "prompt": "Review this branch like the owner before I open a PR."
+    },
+    {
+      "prompt": "Find real correctness and regression issues in this implementation."
+    },
+    {
+      "prompt": "Perform an independent review after the implementation agent finishes."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Automatically reformat all files."
+    },
+    {
+      "prompt": "Summarize the diff without evaluating it."
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+# Measurement and evals
+
+PowerKit itself must be evaluated. Otherwise it can become a large set of instructions that feels sophisticated but adds latency and confusion.
+
+## Routing evals
+
+Each skill includes positive and negative cases in `evals/cases.json`.
+
+Review:
+
+- Does the skill trigger for the intended request?
+- Does it stay out of unrelated work?
+- Does it collide with another skill?
+- Is explicit invocation clearer than implicit invocation?
+
+The static validator checks case presence and structure. A future live eval runner should execute these against supported assistants.
+
+## Behavioral evals
+
+High-value scenarios should test observable behavior, not exact prose.
+
+Examples:
+
+- Prompt Preflight inspects repository evidence before asking a question.
+- A material vendor decision causes clarification.
+- Repository Cartographer traces the real execution path.
+- Parallel Investigator delegates only independent read-heavy work.
+- Verification Loop does not report full completion when runtime proof is unavailable.
+- Anti-Slop Review catches a fake integration and a swallowed exception.
+- Security Review finds caller-supplied identity crossing a trust boundary.
+
+## Team metrics
+
+Track medians and distributions, not only anecdotes:
+
+- Turns to actionable execution.
+- User clarifications requested.
+- Material assumptions made without approval.
+- Time to first passing targeted test.
+- Time to verified completion.
+- Rework after assistant handoff.
+- Review findings per change.
+- Escaped defects.
+- Token or request consumption.
+- Tasks where the user bypassed the toolkit.
+
+## Quality guardrail
+
+A workflow that improves quality but triples latency for simple tasks is misrouted. A workflow that is fast but routinely calls partial work complete is underpowered.
+
+Use Workload Router and profile selection to balance quality, latency, and cost.

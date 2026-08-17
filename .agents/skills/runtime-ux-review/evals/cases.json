@@ -1,0 +1,22 @@
+{
+  "skill": "runtime-ux-review",
+  "positive_cases": [
+    {
+      "prompt": "Review the running onboarding flow for friction and accessibility."
+    },
+    {
+      "prompt": "Use the app, reproduce the UI bug, and report evidence before fixing it."
+    },
+    {
+      "prompt": "Verify this new settings screen in actual runtime across key states."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Review a static architecture diagram."
+    },
+    {
+      "prompt": "Explain general UX principles."
+    }
+  ]
+}

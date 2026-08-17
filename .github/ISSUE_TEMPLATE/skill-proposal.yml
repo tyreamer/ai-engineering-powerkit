@@ -1,0 +1,33 @@
+name: Skill proposal
+description: Propose a new or substantially changed Agent Skill
+title: "[skill] "
+labels: ["skill-proposal"]
+body:
+  - type: textarea
+    id: failure
+    attributes:
+      label: Repeated failure mode
+      description: What recurring agent behavior or workflow problem does this prevent?
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Trigger and non-trigger examples
+      description: Provide at least two prompts that should use the skill and two that should not.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Why a skill?
+      description: Why is an instruction, existing skill, hook, subagent, or repository document not enough?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Success evidence
+      description: How will we know this improves outcomes rather than only adding ceremony?
+    validations:
+      required: true

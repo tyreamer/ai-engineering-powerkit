@@ -1,0 +1,22 @@
+{
+  "skill": "adversarial-review",
+  "positive_cases": [
+    {
+      "prompt": "Red-team this migration plan before implementation."
+    },
+    {
+      "prompt": "Try to falsify the claim that this feature is production-ready."
+    },
+    {
+      "prompt": "Perform an independent adversarial review of the auth changes."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Give me general encouragement about this design."
+    },
+    {
+      "prompt": "Format this file."
+    }
+  ]
+}

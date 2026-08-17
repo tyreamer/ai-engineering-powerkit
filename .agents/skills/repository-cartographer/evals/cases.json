@@ -1,0 +1,22 @@
+{
+  "skill": "repository-cartographer",
+  "positive_cases": [
+    {
+      "prompt": "Map this repository so we know where service package onboarding is implemented and how it is tested."
+    },
+    {
+      "prompt": "Find the complete path from this REST endpoint to the database write."
+    },
+    {
+      "prompt": "I am new to this repo. Create a task-relevant operating map before changing anything."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Change the button label from Save to Done."
+    },
+    {
+      "prompt": "Write a unit test for this provided function."
+    }
+  ]
+}

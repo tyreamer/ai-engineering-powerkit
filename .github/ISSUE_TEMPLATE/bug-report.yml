@@ -1,0 +1,40 @@
+name: Bug report
+description: Report a routing, installer, adapter, hook, or validation defect
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Skill routing
+        - Skill behavior
+        - Installer
+        - Validator
+        - Codex adapter
+        - Claude Code adapter
+        - GitHub Copilot adapter
+        - Hook
+        - Documentation
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Include the prompt, command, platform version, and repository state needed to reproduce.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and evidence
+    validations:
+      required: true

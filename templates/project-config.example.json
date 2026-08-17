@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "project_name": "replace-me",
+  "verification": {
+    "static": [],
+    "targeted": [],
+    "broader": [],
+    "runtime": []
+  },
+  "policy": {
+    "ask_before_new_production_dependency": true,
+    "single_writer_default": true,
+    "require_runtime_proof_for_user_visible_changes": true
+  }
+}

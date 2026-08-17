@@ -1,0 +1,22 @@
+{
+  "skill": "anti-slop-review",
+  "positive_cases": [
+    {
+      "prompt": "Do an anti-slop pass before I accept this Codex implementation."
+    },
+    {
+      "prompt": "Check whether this feature is actually integrated or only appears complete."
+    },
+    {
+      "prompt": "Find placeholders, fake data, weak tests, and scope drift in this diff."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Brainstorm features for next quarter."
+    },
+    {
+      "prompt": "Explain what technical debt means."
+    }
+  ]
+}

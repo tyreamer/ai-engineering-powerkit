@@ -1,0 +1,22 @@
+{
+  "skill": "task-contract",
+  "positive_cases": [
+    {
+      "prompt": "Define the contract for importing a photographer's service packages from a screenshot."
+    },
+    {
+      "prompt": "Before implementing this auth migration, bound the outcome and invariants."
+    },
+    {
+      "prompt": "Turn this feature idea into a concrete task contract without choosing architecture yet."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Fix this exact typo."
+    },
+    {
+      "prompt": "Tell me what this error message means."
+    }
+  ]
+}

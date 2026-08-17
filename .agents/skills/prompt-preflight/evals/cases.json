@@ -1,0 +1,27 @@
+{
+  "skill": "prompt-preflight",
+  "positive_cases": [
+    {
+      "prompt": "Make this setup feel more like Plaid. Users should import packages from a screenshot or website instead of filling every field.",
+      "expected": "ENHANCE_AND_EXECUTE after repository inspection"
+    },
+    {
+      "prompt": "Replace local memory with cloud sync.",
+      "expected": "Inspect decisions first, then CLARIFY only material provider/privacy/offline choices still unresolved"
+    },
+    {
+      "prompt": "Fix the typo in README line 12.",
+      "expected": "PASS"
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Explain what dependency injection means.",
+      "reason": "Simple informational request does not need preflight"
+    },
+    {
+      "prompt": "Run the existing tests.",
+      "reason": "Direct and bounded command"
+    }
+  ]
+}

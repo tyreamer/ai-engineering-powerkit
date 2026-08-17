@@ -1,0 +1,22 @@
+{
+  "skill": "context-recovery",
+  "positive_cases": [
+    {
+      "prompt": "Continue the work from yesterday and verify what is actually complete."
+    },
+    {
+      "prompt": "The task card says finished, but check the repo and tell me the real status."
+    },
+    {
+      "prompt": "Recover context after compaction and identify the next safe implementation step."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Start a brand new greenfield project."
+    },
+    {
+      "prompt": "Explain the latest commit message."
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.ai-powerkit/install-manifest.local.json
+dist/
+build/
+*.zip

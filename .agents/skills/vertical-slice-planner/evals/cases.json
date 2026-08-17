@@ -1,0 +1,22 @@
+{
+  "skill": "vertical-slice-planner",
+  "positive_cases": [
+    {
+      "prompt": "Break this cross-platform onboarding redesign into vertical slices."
+    },
+    {
+      "prompt": "We need to modernize this architecture without a big bang. Give me the delivery order."
+    },
+    {
+      "prompt": "Choose the smallest real end-to-end slice for cloud-backed project memory."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "List all backend tasks separately from frontend tasks."
+    },
+    {
+      "prompt": "Fix this isolated unit test."
+    }
+  ]
+}

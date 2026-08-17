@@ -1,0 +1,22 @@
+{
+  "skill": "evidence-first-debugging",
+  "positive_cases": [
+    {
+      "prompt": "Diagnose this intermittent save failure before changing code."
+    },
+    {
+      "prompt": "Find the root cause of this regression using evidence and a hypothesis ledger."
+    },
+    {
+      "prompt": "Reproduce the UI/API race and implement the smallest verified fix."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "The root cause is already proven; apply this exact one-line correction."
+    },
+    {
+      "prompt": "Explain what a stack trace is."
+    }
+  ]
+}

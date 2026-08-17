@@ -1,0 +1,22 @@
+{
+  "skill": "test-gap-hunter",
+  "positive_cases": [
+    {
+      "prompt": "Review these changes for missing tests and false confidence."
+    },
+    {
+      "prompt": "Find the highest-value regression cases around this sync bug."
+    },
+    {
+      "prompt": "Map the acceptance criteria to existing and missing coverage."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Run the current tests without reviewing them."
+    },
+    {
+      "prompt": "Explain the difference between unit and integration tests."
+    }
+  ]
+}

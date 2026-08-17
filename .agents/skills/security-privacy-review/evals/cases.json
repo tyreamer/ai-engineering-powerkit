@@ -1,0 +1,22 @@
+{
+  "skill": "security-privacy-review",
+  "positive_cases": [
+    {
+      "prompt": "Review this new file import flow for security and privacy risks."
+    },
+    {
+      "prompt": "Check the authorization boundary for this MCP tool."
+    },
+    {
+      "prompt": "Threat-model this multi-tenant data migration."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Change the spacing in this static page."
+    },
+    {
+      "prompt": "Explain what encryption is at a high level."
+    }
+  ]
+}

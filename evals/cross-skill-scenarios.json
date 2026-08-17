@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "scenarios": [
+    {
+      "id": "rough-feature-request",
+      "prompt": "This settings flow is too much friction. Let users import packages from a screenshot, pasted text, or their website and make it feel closer to Plaid.",
+      "expected_skills": [
+        "prompt-preflight",
+        "engineering-task-orchestrator",
+        "repository-cartographer",
+        "task-contract",
+        "vertical-slice-planner"
+      ],
+      "must": [
+        "Inspect the current implementation before asking questions",
+        "Silently normalize safe details",
+        "Do not invent a third-party extraction vendor",
+        "Define runtime UX evidence"
+      ]
+    },
+    {
+      "id": "material-cloud-decision",
+      "prompt": "Replace all local project memory with cloud sync.",
+      "expected_skills": [
+        "prompt-preflight",
+        "change-impact-analysis",
+        "migration-planner",
+        "security-privacy-review"
+      ],
+      "must": [
+        "Inspect existing decisions",
+        "Clarify only unresolved material privacy, offline, ownership, or provider choices",
+        "Avoid immediate destructive migration"
+      ]
+    },
+    {
+      "id": "intermittent-save-bug",
+      "prompt": "The settings modal occasionally says it saved, but reopening shows old values. Fix it.",
+      "expected_skills": [
+        "engineering-task-orchestrator",
+        "parallel-investigator",
+        "evidence-first-debugging",
+        "verification-loop"
+      ],
+      "must": [
+        "Reproduce or instrument before patching",
+        "Trace UI, API, and persistence state",
+        "Add regression proof"
+      ]
+    },
+    {
+      "id": "small-edit-fast-path",
+      "prompt": "Change the heading from Services Setup to Services.",
+      "expected_skills": [],
+      "allowed_skills": [
+        "prompt-preflight"
+      ],
+      "must": [
+        "Use the fast path",
+        "Avoid a large plan"
+      ]
+    },
+    {
+      "id": "public-contract-change",
+      "prompt": "Rename customerId to accountId in the public API and event payload.",
+      "expected_skills": [
+        "change-impact-analysis",
+        "api-contract-guardian",
+        "migration-planner",
+        "verification-loop"
+      ],
+      "must": [
+        "Find consumers",
+        "Classify compatibility",
+        "Define deployment order"
+      ]
+    },
+    {
+      "id": "ai-slop-review",
+      "prompt": "Codex says the import feature is complete. Check whether it is real before I merge it.",
+      "expected_skills": [
+        "anti-slop-review",
+        "implementation-critic",
+        "verification-loop"
+      ],
+      "must": [
+        "Inspect real integration",
+        "Find placeholders or fake success",
+        "State unverified behavior"
+      ]
+    },
+    {
+      "id": "new-dependency",
+      "prompt": "Someone says we need this new framework. Should we add it?",
+      "expected_skills": [
+        "dependency-due-diligence",
+        "change-impact-analysis"
+      ],
+      "must": [
+        "Inspect existing capability",
+        "Verify current facts",
+        "Define exit path"
+      ]
+    },
+    {
+      "id": "screenshot-to-ui",
+      "prompt": "Use these screenshots to implement the screen in our existing app.",
+      "expected_skills": [
+        "ui-evidence-to-spec",
+        "repository-cartographer",
+        "runtime-ux-review"
+      ],
+      "must": [
+        "Separate observed behavior from inference",
+        "Use existing design system",
+        "Verify in runtime"
+      ]
+    },
+    {
+      "id": "resume-stale-work",
+      "prompt": "Continue yesterday's task. The report says it is done but I am not sure.",
+      "expected_skills": [
+        "context-recovery",
+        "decision-handoff"
+      ],
+      "must": [
+        "Verify repo state",
+        "Distinguish plan from implementation",
+        "Preserve uncommitted changes"
+      ]
+    },
+    {
+      "id": "high-risk-auth",
+      "prompt": "Move authorization from the service to caller-provided role context so integration is easier.",
+      "expected_skills": [
+        "security-privacy-review",
+        "adversarial-review",
+        "change-impact-analysis"
+      ],
+      "must": [
+        "Identify confused-deputy risk",
+        "Keep enforcement at trusted boundary",
+        "Do not accept caller claims without proof"
+      ]
+    }
+  ]
+}

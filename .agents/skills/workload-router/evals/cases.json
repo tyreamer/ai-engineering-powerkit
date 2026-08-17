@@ -1,0 +1,22 @@
+{
+  "skill": "workload-router",
+  "positive_cases": [
+    {
+      "prompt": "Choose the right agent and parallelization strategy for this cross-service migration."
+    },
+    {
+      "prompt": "This bug is intermittent and spans UI, API, and sync logic. Route the work intelligently."
+    },
+    {
+      "prompt": "Use the cheapest effective approach without sacrificing verification."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Rename this file."
+    },
+    {
+      "prompt": "What does this regex do?"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "skill": "engineering-task-orchestrator",
+  "positive_cases": [
+    {
+      "prompt": "Implement a new multi-step onboarding flow across the API, persistence layer, and desktop UI."
+    },
+    {
+      "prompt": "Diagnose and fix this intermittent production-only synchronization bug."
+    },
+    {
+      "prompt": "Migrate this service from the legacy auth contract without breaking current clients."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Rename one local variable."
+    },
+    {
+      "prompt": "Explain this function to me."
+    },
+    {
+      "prompt": "Format this single file using the repository formatter."
+    }
+  ]
+}

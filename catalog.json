@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "name": "AI Engineering PowerKit",
+  "version": "0.1.0",
+  "canonical_skill_root": ".agents/skills",
+  "profiles": {
+    "foundation": {
+      "description": "Default reasoning and context discipline for nearly every team.",
+      "skills": [
+        "prompt-preflight",
+        "engineering-task-orchestrator",
+        "repository-cartographer",
+        "task-contract",
+        "context-recovery",
+        "workload-router",
+        "decision-handoff"
+      ]
+    },
+    "delivery": {
+      "description": "Planning, execution, debugging, migration, and parallel investigation.",
+      "skills": [
+        "vertical-slice-planner",
+        "change-impact-analysis",
+        "implementation-planner",
+        "parallel-investigator",
+        "evidence-first-debugging",
+        "migration-planner"
+      ]
+    },
+    "quality": {
+      "description": "Verification, testing, security, compatibility, anti-slop, and independent review.",
+      "skills": [
+        "verification-loop",
+        "test-gap-hunter",
+        "adversarial-review",
+        "anti-slop-review",
+        "security-privacy-review",
+        "api-contract-guardian",
+        "implementation-critic"
+      ]
+    },
+    "specialist": {
+      "description": "Optional dependency and UI workflows.",
+      "skills": [
+        "dependency-due-diligence",
+        "ui-evidence-to-spec",
+        "runtime-ux-review"
+      ]
+    }
+  },
+  "skills": [
+    {
+      "name": "adversarial-review",
+      "title": "Adversarial Review",
+      "profile": "quality",
+      "description": "Challenges a plan, architecture, or completed change by trying to falsify its assumptions and correctness. Use for high-risk work, before irreversible decisions, or when a second independent perspective can expose hidden failure modes."
+    },
+    {
+      "name": "anti-slop-review",
+      "title": "Anti-Slop Review",
+      "profile": "quality",
+      "description": "Detects superficially complete AI-generated implementation: placeholders, fake integrations, swallowed errors, ungrounded abstractions, dead code, TODO paths, weak tests, scope drift, and claims unsupported by runtime evidence. Use before handoff or PR creation."
+    },
+    {
+      "name": "api-contract-guardian",
+      "title": "API Contract Guardian",
+      "profile": "quality",
+      "description": "Protects API, event, schema, and SDK compatibility. Use when changing request or response fields, semantics, status codes, events, generated clients, validation, versioning, or behavior consumed outside the immediate module."
+    },
+    {
+      "name": "change-impact-analysis",
+      "title": "Change Impact Analysis",
+      "profile": "delivery",
+      "description": "Analyzes blast radius before a significant change. Use for architecture, shared libraries, schemas, auth, events, public APIs, data flows, cross-service behavior, or any modification where hidden consumers and operational effects matter."
+    },
+    {
+      "name": "context-recovery",
+      "title": "Context Recovery",
+      "profile": "foundation",
+      "description": "Reconstructs trustworthy project state when continuing interrupted or inherited work. Use after compaction, a new coding session, teammate handoff, stale task card, or when claims about completed work must be verified against the repository."
+    },
+    {
+      "name": "decision-handoff",
+      "title": "Decision Handoff",
+      "profile": "foundation",
+      "description": "Creates a concise, evidence-backed checkpoint after implementation or analysis. Use for session handoffs, task closure, pull request preparation, resuming later, or preventing future agents from rediscovering decisions and verification state."
+    },
+    {
+      "name": "dependency-due-diligence",
+      "title": "Dependency Due Diligence",
+      "profile": "specialist",
+      "description": "Evaluates whether to add, replace, or remove a library, framework, service, model, or vendor. Use before introducing production dependencies or when build-versus-buy, licensing, maintenance, security, portability, and exit costs matter."
+    },
+    {
+      "name": "engineering-task-orchestrator",
+      "title": "Engineering Task Orchestrator",
+      "profile": "foundation",
+      "description": "Runs a complete evidence-to-delivery workflow for complex coding tasks. Use for multi-file features, architecture changes, significant bugs, migrations, or work that needs planning, implementation, verification, review, and a clean handoff."
+    },
+    {
+      "name": "evidence-first-debugging",
+      "title": "Evidence-First Debugging",
+      "profile": "delivery",
+      "description": "Diagnoses defects through reproduction, hypotheses, instrumentation, and falsification before changing code. Use for bugs, intermittent failures, regressions, integration issues, performance anomalies, or symptoms whose root cause is not yet proven."
+    },
+    {
+      "name": "implementation-critic",
+      "title": "Implementation Critic",
+      "profile": "quality",
+      "description": "Performs an independent owner-level review of a proposed or completed implementation. Use for pull-request readiness to find correctness defects, behavior regressions, hidden coupling, unnecessary complexity, and missing proof while avoiding style-only noise."
+    },
+    {
+      "name": "implementation-planner",
+      "title": "Implementation Planner",
+      "profile": "delivery",
+      "description": "Produces an executable, evidence-based coding plan tied to real files, symbols, sequencing, and verification. Use after repository mapping for multi-step work; do not use to speculate about a codebase that has not been inspected."
+    },
+    {
+      "name": "migration-planner",
+      "title": "Migration Planner",
+      "profile": "delivery",
+      "description": "Designs safe staged migrations for data, APIs, auth, infrastructure, or architecture. Use when old and new behavior must coexist, deployment order matters, backfills are required, or rollback and compatibility cannot be left implicit."
+    },
+    {
+      "name": "parallel-investigator",
+      "title": "Parallel Investigator",
+      "profile": "delivery",
+      "description": "Coordinates bounded read-heavy subagents and synthesizes their evidence. Use when independent code, test, documentation, security, or runtime questions can be investigated concurrently without overlapping writes."
+    },
+    {
+      "name": "prompt-preflight",
+      "title": "Prompt Preflight",
+      "profile": "foundation",
+      "description": "Evaluates and normalizes non-trivial requests before execution. Use for vague, outcome-oriented, underspecified, or handoff prompts; silently enhance when safe and ask only about material unresolved decisions."
+    },
+    {
+      "name": "repository-cartographer",
+      "title": "Repository Cartographer",
+      "profile": "foundation",
+      "description": "Maps an unfamiliar repository or subsystem before changes are proposed. Use for onboarding, locating ownership, tracing execution paths, identifying build and test commands, or preventing guesses about where a change belongs."
+    },
+    {
+      "name": "runtime-ux-review",
+      "title": "Runtime UX Review",
+      "profile": "specialist",
+      "description": "Reviews the actual running interface and user flow rather than only source code or screenshots. Use after UI implementation to verify behavior, friction, accessibility, responsive states, errors, performance perception, and consistency with the intended experience."
+    },
+    {
+      "name": "security-privacy-review",
+      "title": "Security and Privacy Review",
+      "profile": "quality",
+      "description": "Reviews code or plans for authentication, authorization, secrets, data exposure, tenancy, retention, injection, supply-chain, and abuse risks. Use whenever a change touches identities, permissions, external input, sensitive data, persistence, integrations, or privileged tools."
+    },
+    {
+      "name": "task-contract",
+      "title": "Task Contract",
+      "profile": "foundation",
+      "description": "Converts a request and repository evidence into a bounded implementation contract. Use before significant work to define the outcome, scope, invariants, acceptance evidence, and unresolved decisions without creating a bloated specification."
+    },
+    {
+      "name": "test-gap-hunter",
+      "title": "Test Gap Hunter",
+      "profile": "quality",
+      "description": "Finds missing behavioral coverage and weak tests around a change or subsystem. Use during planning or review to identify untested branches, contracts, failure modes, concurrency, permissions, migrations, and assertions that do not prove the intended behavior."
+    },
+    {
+      "name": "ui-evidence-to-spec",
+      "title": "UI Evidence to Specification",
+      "profile": "specialist",
+      "description": "Turns screenshots, recordings, mockups, or observed interfaces into an implementable UI specification grounded in evidence. Use for reproducing, improving, or debugging user interfaces without inventing hidden behavior or design decisions."
+    },
+    {
+      "name": "verification-loop",
+      "title": "Verification Loop",
+      "profile": "quality",
+      "description": "Proves that a change works through a risk-based ladder of static checks, targeted tests, broader integration, runtime behavior, and diff review. Use after implementation and before claiming completion."
+    },
+    {
+      "name": "vertical-slice-planner",
+      "title": "Vertical Slice Planner",
+      "profile": "delivery",
+      "description": "Breaks a large initiative into ordered end-to-end slices that produce usable behavior and learning. Use when a feature spans layers or teams and should not be delivered as one big bang or as disconnected horizontal infrastructure."
+    },
+    {
+      "name": "workload-router",
+      "title": "Workload Router",
+      "profile": "foundation",
+      "description": "Selects the lightest effective execution mode, reasoning depth, and subagent pattern for an engineering task. Use to control cost, latency, context pollution, and quality instead of applying maximum effort or parallelism to every request."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "skill": "dependency-due-diligence",
+  "positive_cases": [
+    {
+      "prompt": "Should we add this library or use what the platform already provides?"
+    },
+    {
+      "prompt": "Evaluate this AI vendor before we make it a production dependency."
+    },
+    {
+      "prompt": "Perform build-versus-buy and exit-path analysis for this service."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Install the already-approved pinned development dependency."
+    },
+    {
+      "prompt": "Explain what npm is."
+    }
+  ]
+}

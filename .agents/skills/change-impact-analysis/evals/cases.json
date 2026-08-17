@@ -1,0 +1,22 @@
+{
+  "skill": "change-impact-analysis",
+  "positive_cases": [
+    {
+      "prompt": "Assess the blast radius of changing this shared authentication claim."
+    },
+    {
+      "prompt": "What will be affected if we rename this event field and change its semantics?"
+    },
+    {
+      "prompt": "Analyze the impact before replacing this persistence layer."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Change a private test helper name."
+    },
+    {
+      "prompt": "Format the documentation."
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "description": "AI Engineering PowerKit catastrophic-command guard. Review before enabling.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.ai-powerkit/hooks/catastrophic_command_guard.py\"",
+            "commandWindows": "py -3 \"$(git rev-parse --show-toplevel)\\.ai-powerkit\\hooks\\catastrophic_command_guard.py\"",
+            "timeout": 10,
+            "statusMessage": "Checking for catastrophic shell commands"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+[features]
+hooks = true
+multi_agent = true
+
+[agents]
+max_concurrent_threads_per_session = 6
+
+# Keep model and reasoning choices in user or managed configuration.
+# Review project-scoped hooks before trusting and enabling them.

@@ -1,0 +1,22 @@
+{
+  "skill": "parallel-investigator",
+  "positive_cases": [
+    {
+      "prompt": "Use parallel read-only agents to map the API flow, test coverage, and security risks."
+    },
+    {
+      "prompt": "Investigate these three independent failure hypotheses concurrently."
+    },
+    {
+      "prompt": "Keep the main thread clean while separate agents inspect docs and code."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Have five agents all edit the same feature branch."
+    },
+    {
+      "prompt": "Spawn agents to rename one variable."
+    }
+  ]
+}

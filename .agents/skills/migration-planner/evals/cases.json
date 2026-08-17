@@ -1,0 +1,22 @@
+{
+  "skill": "migration-planner",
+  "positive_cases": [
+    {
+      "prompt": "Plan a staged migration from local files to cloud-backed records."
+    },
+    {
+      "prompt": "Migrate this API field without breaking old clients."
+    },
+    {
+      "prompt": "Design the auth cutover, deployment order, rollback, and reconciliation."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Create a fresh table for a brand new unused feature."
+    },
+    {
+      "prompt": "Rename a private variable."
+    }
+  ]
+}

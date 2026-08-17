@@ -1,0 +1,22 @@
+{
+  "skill": "verification-loop",
+  "positive_cases": [
+    {
+      "prompt": "Verify this feature completely before calling it done."
+    },
+    {
+      "prompt": "Run the appropriate checks and prove the user-visible flow in the actual app."
+    },
+    {
+      "prompt": "Create a risk-based verification ladder for these changes."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Tell me which test framework this repo uses."
+    },
+    {
+      "prompt": "Write a speculative test plan before any implementation context exists."
+    }
+  ]
+}

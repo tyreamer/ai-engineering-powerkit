@@ -1,0 +1,22 @@
+{
+  "skill": "ui-evidence-to-spec",
+  "positive_cases": [
+    {
+      "prompt": "Turn these screenshots into an implementation-ready UI spec."
+    },
+    {
+      "prompt": "Inspect the current app and screenshot, then define the exact states and acceptance criteria."
+    },
+    {
+      "prompt": "Recreate this interface using our existing design system without guessing hidden behavior."
+    }
+  ],
+  "negative_cases": [
+    {
+      "prompt": "Generate a decorative image."
+    },
+    {
+      "prompt": "Explain CSS grid without a specific interface."
+    }
+  ]
+}
