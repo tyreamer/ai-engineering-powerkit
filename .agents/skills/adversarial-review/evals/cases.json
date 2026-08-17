@@ -16,7 +16,8 @@
       "prompt": "Give me general encouragement about this design."
     },
     {
-      "prompt": "Format this file."
+      "prompt": "Review this completed low-risk implementation for ordinary PR correctness and regressions.",
+      "reason": "Broad completed-implementation readiness belongs to implementation-critic unless a high-risk assumption needs falsification"
     }
   ]
 }

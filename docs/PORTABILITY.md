@@ -33,6 +33,8 @@ PowerKit uses names that match their parent directory and avoids platform-only f
 - Hooks: `.codex/hooks.json` or inline configuration
 - Skills: `.agents/skills`
 
+PowerKit uses the default `~/.codex` user configuration root and does not currently resolve a custom `CODEX_HOME`. `AGENTS.override.md` also takes precedence over an installed `AGENTS.md`; check for a shadowing override when instructions appear inactive.
+
 ### Claude Code
 
 - Project instructions: `CLAUDE.md`
@@ -40,20 +42,25 @@ PowerKit uses names that match their parent directory and avoids platform-only f
 - Project subagents: `.claude/agents/*.md`
 - Project settings and hooks: `.claude/settings.json`
 
+Personal Claude skills with the same name can override project skills. A repository-pinned install is therefore not proof that an older user-scope copy is inactive. Enterprise `strictPluginOnlyCustomization` can disable loose project/user skills, agents, and hooks entirely.
+
 ### GitHub Copilot
 
 - Repository instructions: `.github/copilot-instructions.md`
-- Path instructions: `.github/instructions/*.instructions.md`
+- Path instructions: `.github/instructions/**/*.instructions.md`
 - Agent instructions: `AGENTS.md`
 - Custom agents: `.github/agents/*.agent.md`
 - Agent skills: `.agents/skills`, `.github/skills`, or `.claude/skills` on supported surfaces
 
-Feature support varies by IDE and surface. Keep adapters conservative and verify them against the versions used by the team.
+PowerKit installs project skills to `.agents/skills` and Copilot CLI user custom agents to `~/.copilot/agents`; it does not install IDE user-profile agents. Current Copilot cloud-agent, code-review, CLI, app, and supported IDE documentation accepts `.agents/skills`, and code review is generally available. This layout is documentation-compatible with code-review skill loading, but PowerKit did not live-test that surface. Custom-agent and instruction support varies by surface, and the `playwright/*` runtime-observer tool is guaranteed only in the Copilot cloud agent.
+
+Feature support varies by IDE and surface. The loose-file adapters were checked against official documentation on 2026-08-16 but were not loaded in current live clients during v0.1.1 verification. Keep adapters conservative and verify them against the versions used by the team.
 
 ## Preventing drift
 
 - Edit canonical skills only under `.agents/skills`.
 - Reinstall or regenerate platform copies.
+- Keep installer manifests base-relative; schema-v2 managed installs can be updated after a repository move or clone.
 - Never maintain separate behavioral text manually in three directories.
 - Put platform-only behavior in adapters.
 - Run `python3 tools/validate.py` after changes.

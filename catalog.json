@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "name": "AI Engineering PowerKit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "canonical_skill_root": ".agents/skills",
   "profiles": {
     "foundation": {
@@ -53,7 +53,7 @@
       "name": "adversarial-review",
       "title": "Adversarial Review",
       "profile": "quality",
-      "description": "Challenges a plan, architecture, or completed change by trying to falsify its assumptions and correctness. Use for high-risk work, before irreversible decisions, or when a second independent perspective can expose hidden failure modes."
+      "description": "Challenges high-risk plans, architectures, decisions, or completion claims by trying to falsify their load-bearing assumptions. Use before irreversible work or when concrete counterexamples matter; use implementation-critic for ordinary completed-implementation PR readiness."
     },
     {
       "name": "anti-slop-review",
@@ -107,7 +107,7 @@
       "name": "implementation-critic",
       "title": "Implementation Critic",
       "profile": "quality",
-      "description": "Performs an independent owner-level review of a proposed or completed implementation. Use for pull-request readiness to find correctness defects, behavior regressions, hidden coupling, unnecessary complexity, and missing proof while avoiding style-only noise."
+      "description": "Performs an independent owner-level review of a completed implementation for pull-request readiness, correctness defects, regressions, hidden coupling, unnecessary complexity, and missing proof. Use anti-slop-review for placeholder or fake-integration audits and adversarial-review for pre-decision high-risk plans."
     },
     {
       "name": "implementation-planner",

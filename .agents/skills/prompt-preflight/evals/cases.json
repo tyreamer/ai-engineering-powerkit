@@ -10,8 +10,8 @@
       "expected": "Inspect decisions first, then CLARIFY only material provider/privacy/offline choices still unresolved"
     },
     {
-      "prompt": "Fix the typo in README line 12.",
-      "expected": "PASS"
+      "prompt": "The onboarding errors are confusing. Make them actionable without redesigning authentication.",
+      "expected": "ENHANCE_AND_EXECUTE after inspecting the current error path and preserving the auth boundary"
     }
   ],
   "negative_cases": [
@@ -22,6 +22,10 @@
     {
       "prompt": "Run the existing tests.",
       "reason": "Direct and bounded command"
+    },
+    {
+      "prompt": "Fix the typo in README line 12.",
+      "reason": "Trivial, fully specified edit belongs on the fast path without skill activation"
     }
   ]
 }

@@ -16,7 +16,8 @@
       "prompt": "Automatically reformat all files."
     },
     {
-      "prompt": "Summarize the diff without evaluating it."
+      "prompt": "Red-team this migration architecture before implementation begins.",
+      "reason": "Pre-implementation falsification of a high-risk plan belongs to adversarial-review"
     }
   ]
 }

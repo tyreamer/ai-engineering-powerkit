@@ -1,4 +1,5 @@
 {
+  "description": "AI Engineering PowerKit catastrophic-command guard. Stage and review the script before enabling.",
   "hooks": {
     "PreToolUse": [
       {
@@ -6,7 +7,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$(git rev-parse --show-toplevel)/.ai-powerkit/hooks/catastrophic_command_guard.py\""
+            "command": "python3",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.ai-powerkit/hooks/catastrophic_command_guard.py"
+            ]
+          }
+        ]
+      },
+      {
+        "matcher": "PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "py",
+            "args": [
+              "-3",
+              "${CLAUDE_PROJECT_DIR}/.ai-powerkit/hooks/catastrophic_command_guard.py"
+            ]
           }
         ]
       }

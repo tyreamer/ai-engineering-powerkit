@@ -27,6 +27,8 @@ AI-assistant customization has its own supply-chain risk.
 - Require confirmation for production dependencies and destructive or irreversible work.
 - Maintain an installation manifest.
 - Refuse unmanaged artifact conflicts before any installation mutation.
+- Reject symlinked installer destinations and release inputs so a cloned repository cannot redirect writes or archive external content.
+- Package only reviewed Git-tracked regular files.
 - Review `.ai-powerkit/project.json` as executable code before running verification.
 
 ## Hook policy
@@ -45,6 +47,8 @@ Do not use a model hook for a rule that can be expressed deterministically.
 ## Untrusted repositories
 
 Do not automatically install project customizations into personal scope merely because a repository requests it. Do not automatically enable project hooks before the workspace is trusted.
+
+Claude Code non-interactive and SDK flows may not present the same workspace-trust pause as an interactive session. Copilot code review reads customization from the pull request head branch, so a review of a PR that changes its own instructions, skills, or agents is not an independent security control. Require human or base-branch review for customization changes.
 
 ## Enterprise use
 

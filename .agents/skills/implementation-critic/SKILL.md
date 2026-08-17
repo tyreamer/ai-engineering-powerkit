@@ -1,6 +1,6 @@
 ---
 name: implementation-critic
-description: "Performs an independent owner-level review of a proposed or completed implementation. Use for pull-request readiness to find correctness defects, behavior regressions, hidden coupling, unnecessary complexity, and missing proof while avoiding style-only noise."
+description: "Performs an independent owner-level review of a completed implementation for pull-request readiness, correctness defects, regressions, hidden coupling, unnecessary complexity, and missing proof. Use anti-slop-review for placeholder or fake-integration audits and adversarial-review for pre-decision high-risk plans."
 license: MIT
 metadata:
   author: ai-engineering-powerkit

@@ -1,6 +1,6 @@
 ---
 name: adversarial-review
-description: "Challenges a plan, architecture, or completed change by trying to falsify its assumptions and correctness. Use for high-risk work, before irreversible decisions, or when a second independent perspective can expose hidden failure modes."
+description: "Challenges high-risk plans, architectures, decisions, or completion claims by trying to falsify their load-bearing assumptions. Use before irreversible work or when concrete counterexamples matter; use implementation-critic for ordinary completed-implementation PR readiness."
 license: MIT
 metadata:
   author: ai-engineering-powerkit

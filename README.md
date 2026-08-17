@@ -152,7 +152,7 @@ These change how work enters the system:
 Not everything should be left to model judgment. PowerKit includes scripts and optional hooks for things that should be deterministic:
 
 - installation and profile management
-- repository health checks
+- repository customization inventory
 - static skill validation
 - skill scaffolding
 - verification command execution
@@ -227,12 +227,12 @@ python3 tools/install.py \
   --include-agents
 ```
 
-Or install every profile into your user-level configuration:
+For user-level configuration, start with selected profiles; large skill catalogs can crowd routing metadata:
 
 ```bash
 python3 tools/install.py \
   --scope user \
-  --profiles all \
+  --profiles foundation \
   --platforms codex,claude,copilot \
   --include-agents
 ```
@@ -333,7 +333,7 @@ An engineering harness shapes **how work is interpreted, decomposed, executed, v
 
 That is the difference this repository is trying to capture.
 
-PowerKit is intentionally opinionated about workflow while remaining portable across coding assistants. It is a **v0.1.0 starting point**, not a claim that every adapter has been proven in every enterprise environment. Platform behavior evolves quickly; review platform-specific configuration against the versions your team actually runs.
+PowerKit is intentionally opinionated about workflow while remaining portable across coding assistants. It is a **v0.1.1 starting point**, not a claim that every adapter has been proven in every client or enterprise environment. Platform behavior evolves quickly; review platform-specific configuration against the versions your team actually runs.
 
 ## Contributing
 

@@ -16,7 +16,8 @@
       "prompt": "Brainstorm features for next quarter."
     },
     {
-      "prompt": "Explain what technical debt means."
+      "prompt": "Review this fully integrated implementation for general correctness and regression risk.",
+      "reason": "General owner-level implementation review belongs to implementation-critic without evidence of placeholder or fake integration risk"
     }
   ]
 }

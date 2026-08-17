@@ -22,13 +22,15 @@ class Installer:
         self.base = base
         self.dry_run = dry_run
         self.force = force
-        self.timestamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        self.timestamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
         self.manifest_files: list[str] = []
+        self.previous_manifest_files: set[str] = set()
+        self.previous_stale_files: set[str] = set()
         self.messages: list[str] = []
 
     def relative_label(self, path: Path) -> str:
         try:
-            return str(path.relative_to(self.base))
+            return path.relative_to(self.base).as_posix()
         except ValueError:
             return str(path)
 
@@ -37,15 +39,140 @@ class Installer:
         self.messages.append(message)
         print(message)
 
-    def backup(self, path: Path) -> None:
+    def preflight_destination(self, path: Path) -> None:
+        """Reject paths that can escape the selected installation root."""
+        try:
+            relative = path.relative_to(self.base)
+        except ValueError as exc:
+            raise RuntimeError(f"Destination escapes installation root: {path}") from exc
+        if any(part in {".", ".."} for part in relative.parts):
+            raise RuntimeError(f"Destination contains unsafe path segments: {path}")
+
+        current = self.base
+        for part in relative.parts:
+            current = current / part
+            if current.is_symlink():
+                raise RuntimeError(
+                    f"Refusing symlinked installation destination {current}. "
+                    "Replace it with a real path before installing."
+                )
+
+    def preflight_manifest(self, path: Path) -> None:
+        self.preflight_destination(path)
         if not path.exists():
             return
+        if not path.is_file():
+            raise RuntimeError(f"Installation manifest path is not a file: {path}")
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            if self.force:
+                return
+            raise RuntimeError(
+                f"Refusing to overwrite invalid installation manifest {path}. "
+                "Use --force only after reviewing and backing it up."
+            ) from exc
+        if payload.get("toolkit") != "ai-engineering-powerkit":
+            if self.force:
+                return
+            raise RuntimeError(
+                f"Refusing to overwrite unmanaged installation manifest {path}. "
+                "Use --force only after reviewing it."
+            )
+        schema_version = payload.get("schema_version")
+        if schema_version not in {1, 2}:
+            if self.force:
+                return
+            raise RuntimeError(f"Installation manifest has an unsupported schema: {path}")
+        files = payload.get("files", [])
+        stale_files = payload.get("stale_files", [])
+        for field, values in (("files", files), ("stale_files", stale_files)):
+            if not isinstance(values, list) or any(not isinstance(item, str) for item in values):
+                if self.force:
+                    return
+                raise RuntimeError(f"Installation manifest has an invalid {field} list: {path}")
+
+        all_entries = files + stale_files
+        legacy_root: Path | None = None
+        absolute_entries = [Path(item) for item in all_entries if Path(item).is_absolute()]
+        if schema_version == 1 and absolute_entries:
+            root_markers = {".agents", ".claude", ".codex", ".copilot", ".github", ".ai-powerkit"}
+            inferred_roots: set[Path] = set()
+            for entry in absolute_entries:
+                cursor = entry
+                while cursor != cursor.parent:
+                    if cursor.name in root_markers:
+                        inferred_roots.add(cursor.parent)
+                        break
+                    cursor = cursor.parent
+            if len(inferred_roots) != 1:
+                raise RuntimeError(
+                    f"Legacy installation manifest paths do not identify one install root: {path}"
+                )
+            legacy_root = inferred_roots.pop()
+            for entry in absolute_entries:
+                try:
+                    entry.relative_to(legacy_root)
+                except ValueError as exc:
+                    raise RuntimeError(
+                        f"Legacy manifest entry escapes its install root: {entry}"
+                    ) from exc
+
+        def normalize_entry(item: str) -> str:
+            candidate = Path(item)
+            if candidate.is_absolute():
+                if schema_version != 1 or legacy_root is None:
+                    raise RuntimeError(
+                        f"Installation manifest schema {schema_version} requires relative paths: {path}"
+                    )
+                try:
+                    candidate = candidate.relative_to(legacy_root)
+                except ValueError as exc:
+                    raise RuntimeError(f"Legacy manifest entry escapes its install root: {item}") from exc
+            if not candidate.parts or any(part in {".", ".."} for part in candidate.parts):
+                raise RuntimeError(f"Installation manifest contains an unsafe path: {item}")
+            return candidate.as_posix()
+
+        try:
+            self.previous_manifest_files = {normalize_entry(item) for item in files}
+            self.previous_stale_files = {normalize_entry(item) for item in stale_files}
+        except RuntimeError:
+            if self.force:
+                self.previous_manifest_files = set()
+                self.previous_stale_files = set()
+                return
+            raise
+
+    def preflight_backup_root(self) -> None:
+        self.preflight_destination(
+            self.base / ".ai-powerkit" / "backups" / self.timestamp
+        )
+
+    def preflight_directory_contents(self, path: Path) -> None:
+        """Reject descendant links before a managed directory can be backed up."""
+        try:
+            for child in path.rglob("*"):
+                if child.is_symlink():
+                    raise RuntimeError(
+                        f"Refusing managed directory with symlinked content {child}. "
+                        "Remove the link before reinstalling."
+                    )
+        except OSError as exc:
+            raise RuntimeError(f"Cannot safely inspect managed directory {path}: {exc}") from exc
+
+    def backup(self, path: Path) -> None:
+        self.preflight_destination(path)
+        if not path.exists():
+            return
+        if path.is_dir():
+            self.preflight_directory_contents(path)
         backup_root = self.base / ".ai-powerkit" / "backups" / self.timestamp
         try:
             rel = path.relative_to(self.base)
         except ValueError:
             rel = Path(path.name)
         destination = backup_root / rel
+        self.preflight_destination(destination)
         self.log("backup", destination)
         if self.dry_run:
             return
@@ -56,16 +183,37 @@ class Installer:
             shutil.copy2(path, destination)
 
     def preflight_skill(self, destination: Path) -> None:
-        if not destination.exists() or self.force:
+        self.preflight_destination(destination)
+        if not destination.exists():
+            return
+        if destination.is_dir():
+            self.preflight_directory_contents(destination)
+        if self.force:
             return
         marker = destination / ".powerkit-origin.json"
+        self.preflight_destination(marker)
         if not destination.is_dir() or not marker.is_file():
             raise RuntimeError(
                 f"Refusing to overwrite unmanaged skill directory {destination}. "
                 "Use --force only after reviewing it."
             )
+        try:
+            payload = json.loads(marker.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise RuntimeError(
+                f"Refusing skill directory with invalid ownership marker {destination}."
+            ) from exc
+        if (
+            payload.get("source") != "ai-engineering-powerkit"
+            or payload.get("skill") != destination.name
+            or not isinstance(payload.get("version"), str)
+        ):
+            raise RuntimeError(
+                f"Refusing skill directory with invalid ownership marker {destination}."
+            )
 
     def preflight_managed_file(self, destination: Path) -> None:
+        self.preflight_destination(destination)
         if not destination.exists() or self.force:
             return
         if not destination.is_file():
@@ -80,13 +228,31 @@ class Installer:
                 f"Refusing to overwrite unreadable agent file {destination}. "
                 "Use --force only after reviewing it."
             ) from exc
-        if MANAGED_MARKER not in text:
+        marker_lines = {
+            f"# {MANAGED_MARKER}",
+            f"<!-- {MANAGED_MARKER} -->",
+        }
+        if not any(line.strip() in marker_lines for line in text.splitlines()):
             raise RuntimeError(
                 f"Refusing to overwrite unmanaged agent file {destination}. "
                 "Use --force only after reviewing it."
             )
 
+    def preflight_staged_file(self, destination: Path) -> None:
+        self.preflight_destination(destination)
+        if not destination.exists() or self.force:
+            return
+        managed_inventory = self.previous_manifest_files | self.previous_stale_files
+        if self.relative_label(destination) not in managed_inventory:
+            raise RuntimeError(
+                f"Refusing to overwrite unmanaged staged file {destination}. "
+                "Use --force only after reviewing it."
+            )
+        if not destination.is_file():
+            raise RuntimeError(f"Managed staged path is not a file: {destination}")
+
     def preflight_instruction(self, destination: Path) -> None:
+        self.preflight_destination(destination)
         if not destination.exists():
             return
         if not destination.is_file():
@@ -103,13 +269,14 @@ class Installer:
             )
 
     def copy_file(self, source: Path, destination: Path, overwrite: bool = True) -> None:
+        self.preflight_destination(destination)
         if destination.exists() and not overwrite:
             self.log("skip existing", destination)
             return
         if destination.exists():
             self.backup(destination)
         self.log("copy file", destination)
-        self.manifest_files.append(str(destination))
+        self.manifest_files.append(self.relative_label(destination))
         if self.dry_run:
             return
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -117,7 +284,11 @@ class Installer:
 
     def copy_managed_file(self, source: Path, destination: Path) -> None:
         source_text = source.read_text(encoding="utf-8")
-        if MANAGED_MARKER not in source_text:
+        marker_lines = {
+            f"# {MANAGED_MARKER}",
+            f"<!-- {MANAGED_MARKER} -->",
+        }
+        if not any(line.strip() in marker_lines for line in source_text.splitlines()):
             raise RuntimeError(f"Managed source marker is missing from {source}")
         self.preflight_managed_file(destination)
         self.copy_file(source, destination)
@@ -130,7 +301,7 @@ class Installer:
             self.log("replace skill", destination)
         else:
             self.log("install skill", destination)
-        self.manifest_files.append(str(destination))
+        self.manifest_files.append(self.relative_label(destination))
         if self.dry_run:
             return
         if destination.exists():
@@ -165,19 +336,20 @@ class Installer:
             if updated:
                 updated += "\n\n"
             updated += wrapped + "\n"
+        self.manifest_files.append(self.relative_label(destination))
         if existing == updated:
             self.log("unchanged", destination)
             return
         if destination.exists():
             self.backup(destination)
         self.log("merge instructions", destination)
-        self.manifest_files.append(str(destination))
         if self.dry_run:
             return
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(updated, encoding="utf-8")
 
     def write_manifest(self, path: Path, payload: dict) -> None:
+        self.preflight_destination(path)
         if path.exists():
             self.backup(path)
         self.log("write manifest", path)
@@ -285,6 +457,7 @@ def agent_operations(
         targets = {
             "codex": base / ".codex" / "agents",
             "claude": base / ".claude" / "agents",
+            "copilot": base / ".copilot" / "agents",
         }
 
     operations: list[tuple[Path, Path]] = []
@@ -321,6 +494,27 @@ def hook_operations(base: Path, platforms: set[str]) -> list[tuple[Path, Path]]:
             )
         )
     return operations
+
+
+def preflight_source(path: Path, *, directory: bool = False) -> None:
+    """Reject missing or symlinked toolkit sources before target mutation."""
+    try:
+        relative = path.relative_to(ROOT)
+    except ValueError as exc:
+        raise RuntimeError(f"Toolkit source escapes repository root: {path}") from exc
+    current = ROOT
+    for part in relative.parts:
+        current = current / part
+        if current.is_symlink():
+            raise RuntimeError(f"Toolkit source must not be a symlink: {current}")
+    valid = path.is_dir() if directory else path.is_file()
+    if not valid:
+        kind = "directory" if directory else "file"
+        raise RuntimeError(f"Toolkit source {kind} is missing: {path}")
+    if directory:
+        for child in path.rglob("*"):
+            if child.is_symlink():
+                raise RuntimeError(f"Toolkit source must not contain symlinks: {child}")
 
 
 def main() -> int:
@@ -366,6 +560,7 @@ def main() -> int:
 
     installer = Installer(base=base, dry_run=args.dry_run, force=args.force)
     version = str(catalog["version"])
+    manifest_path = base / ".ai-powerkit" / "install-manifest.json"
 
     skill_ops: list[tuple[Path, Path]] = []
     for skill_root in destinations.values():
@@ -377,7 +572,20 @@ def main() -> int:
     )
     staged_ops = hook_operations(base, platforms) if args.stage_hooks else []
 
+    desired_destinations = {
+        destination
+        for _, destination in skill_ops + agent_ops + staged_ops
+    }
+    desired_destinations.update(destination for destination, _ in instruction_ops)
+
     try:
+        installer.preflight_manifest(manifest_path)
+        installer.preflight_backup_root()
+        for source, _ in skill_ops:
+            preflight_source(source, directory=True)
+        for source, _ in agent_ops + staged_ops:
+            preflight_source(source)
+
         # Refuse all detectable conflicts before mutating the target. This avoids
         # half-installed toolkits when a later destination belongs to the user.
         for _, destination in skill_ops:
@@ -386,6 +594,21 @@ def main() -> int:
             installer.preflight_instruction(destination)
         for _, destination in agent_ops:
             installer.preflight_managed_file(destination)
+        for _, destination in staged_ops:
+            installer.preflight_staged_file(destination)
+
+        desired_labels = {
+            installer.relative_label(path) for path in desired_destinations
+        }
+        installer.manifest_files.extend(desired_labels)
+        previous_inventory = (
+            installer.previous_manifest_files | installer.previous_stale_files
+        )
+        stale_files = sorted(
+            label
+            for label in previous_inventory - desired_labels
+            if (base / label).exists() or (base / label).is_symlink()
+        )
 
         for source, destination in skill_ops:
             installer.copy_skill(source, destination, version)
@@ -403,11 +626,10 @@ def main() -> int:
         for source, destination in staged_ops:
             installer.copy_file(source, destination)
 
-        manifest_path = base / ".ai-powerkit" / "install-manifest.json"
         installer.write_manifest(
             manifest_path,
             {
-                "schema_version": 1,
+                "schema_version": 2,
                 "toolkit": "ai-engineering-powerkit",
                 "version": version,
                 "scope": args.scope,
@@ -417,6 +639,7 @@ def main() -> int:
                 "agents": bool(args.include_agents),
                 "hooks_staged": bool(args.stage_hooks),
                 "dry_run": bool(args.dry_run),
+                "stale_files": stale_files,
             },
         )
     except RuntimeError as exc:
@@ -432,6 +655,11 @@ def main() -> int:
         print("Hooks were not copied or enabled.")
     else:
         print("Hooks were staged but not enabled. Review docs/HOOKS.md.")
+    if stale_files:
+        print(
+            f"Warning: {len(stale_files)} previously managed artifact(s) are now stale "
+            "and were preserved. Review install-manifest.json before removing them."
+        )
     return 0
 
 

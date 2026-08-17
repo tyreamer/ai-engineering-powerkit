@@ -12,6 +12,15 @@
 - Team rollout and security guidance.
 - Codex bootstrap and hardening prompts.
 
+## v0.1.1
+
+- Installer path-containment and managed-ownership hardening.
+- Stale managed-artifact detection without automatic deletion.
+- Tracked-file-only release archives.
+- Current Bash and PowerShell hook examples with fail-closed event parsing.
+- Stronger structural, adapter-parity, routing-data, and version validation.
+- Behavioral installation, hook, verification, validator, and package tests.
+
 ## v0.2
 
 - Live routing eval runner for Codex, Claude Code, and Copilot where automation is supported.

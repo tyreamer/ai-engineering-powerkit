@@ -20,17 +20,31 @@ def main() -> int:
     parser.add_argument("--levels", default="static,targeted")
     parser.add_argument("--timeout", type=int, default=900)
     parser.add_argument("--keep-going", action="store_true")
+    parser.add_argument(
+        "--allow-empty",
+        action="store_true",
+        help="Return success when no commands exist for the requested levels.",
+    )
     args = parser.parse_args()
 
     target = args.target.expanduser().resolve()
+    if not target.is_dir():
+        parser.error(f"target does not exist: {target}")
     config_path = args.config
     if not config_path.is_absolute():
         config_path = target / config_path
     if not config_path.is_file():
         parser.error(f"config does not exist: {config_path}")
 
-    data = json.loads(config_path.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        parser.error(f"invalid verification config {config_path}: {exc}")
+    if not isinstance(data, dict):
+        parser.error("verification config must be a JSON object")
     verification = data.get("verification", {})
+    if not isinstance(verification, dict):
+        parser.error("verification must be a JSON object")
     requested = [item.strip() for item in args.levels.split(",") if item.strip()]
     unknown = sorted(set(requested) - set(LEVELS))
     if unknown:
@@ -71,7 +85,7 @@ def main() -> int:
 
     if executed == 0:
         print("No verification commands configured for the requested levels.")
-        return 0
+        return 0 if args.allow_empty else 2
     if failures:
         print(f"Verification finished with {failures} failed command(s).", file=sys.stderr)
         return 1
