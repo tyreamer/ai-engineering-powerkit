@@ -12,6 +12,7 @@
     "proof": "powerkit proof",
     "context_audit": "powerkit context audit",
     "broker": "powerkit broker",
+    "certify": "powerkit certify",
     "update": "powerkit update",
     "uninstall": "powerkit uninstall"
   },
@@ -22,7 +23,10 @@
   },
   "schemas": {
     "proof_manifest": "schemas/proof-manifest.schema.json",
-    "execution_broker": "schemas/execution-broker-v1.schema.json"
+    "execution_broker": "schemas/execution-broker-v1.schema.json",
+    "certification_cases": "schemas/certification-case-v1.schema.json",
+    "certification_trace": "schemas/certification-trace-v1.schema.json",
+    "certification_result": "schemas/certification-result-v1.schema.json"
   },
   "default_setup": {
     "profiles": [

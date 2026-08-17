@@ -27,6 +27,13 @@ from powerkit.broker import (
     resolve_policy,
     write_trace,
 )
+from powerkit.certification import (
+    build_pilot_result,
+    load_case_corpus,
+    load_trace as load_certification_trace,
+    pilot_exit_code,
+    render_pilot_result,
+)
 from powerkit.context_budget import (
     DEFAULT_BASELINE_PATH,
     audit_context,
@@ -438,6 +445,25 @@ def command_version(args: argparse.Namespace) -> int:
     del args
     print(distribution_version())
     return 0
+
+
+def command_certify_pilot(args: argparse.Namespace) -> int:
+    target = target_path(args.target)
+    corpus_path = args.corpus
+    if corpus_path is not None and not corpus_path.is_absolute():
+        corpus_path = target / corpus_path
+    corpus = load_case_corpus(corpus_path, asset_root=target if corpus_path else None)
+    cases = {case["id"]: case for case in corpus["cases"]}
+    traces = []
+    for path in args.trace or ():
+        trace_path = path if path.is_absolute() else target / path
+        traces.append(load_certification_trace(trace_path, cases))
+    result = build_pilot_result(corpus, traces)
+    if args.json:
+        print(json.dumps(result, indent=2))
+    else:
+        print(render_pilot_result(result), end="")
+    return pilot_exit_code(result)
 
 
 def broker_platforms(values: Sequence[str] | None) -> tuple[str, ...]:
@@ -890,6 +916,28 @@ def build_parser() -> argparse.ArgumentParser:
 
     version = subparsers.add_parser("version", help="Print the running distribution version")
     version.set_defaults(handler=command_version)
+
+    certify = subparsers.add_parser(
+        "certify", help="Plan and score live-client certification evidence"
+    )
+    certify_commands = certify.add_subparsers(dest="certify_command", required=True)
+    pilot = certify_commands.add_parser(
+        "pilot", help="Validate the six-case pilot or score supplied paired traces"
+    )
+    add_target(pilot)
+    pilot.add_argument(
+        "--corpus",
+        type=Path,
+        help="Versioned case corpus (default: bundled six-case pilot)",
+    )
+    pilot.add_argument(
+        "--trace",
+        type=Path,
+        action="append",
+        help="Certification trace to score; repeat for each run",
+    )
+    pilot.add_argument("--json", action="store_true", help="Print the stable result contract")
+    pilot.set_defaults(handler=command_certify_pilot)
 
     broker = subparsers.add_parser(
         "broker",

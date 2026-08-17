@@ -955,7 +955,13 @@ class ToolingTests(unittest.TestCase):
             source = destination / "ai-engineering-powerkit"
             for relative in (
                 "powerkit/broker.py",
+                "powerkit/certification.py",
                 "schemas/execution-broker-v1.schema.json",
+                "schemas/certification-case-v1.schema.json",
+                "schemas/certification-trace-v1.schema.json",
+                "schemas/certification-result-v1.schema.json",
+                "evals/live-certification-pilot-v1.json",
+                "evals/fixtures/live-certification-pilot/tiny-bounded-edit/greeting.py",
                 "adapters/codex/capabilities.json",
                 "adapters/claude/capabilities.json",
                 "adapters/copilot/capabilities.json",
@@ -985,6 +991,20 @@ class ToolingTests(unittest.TestCase):
             )
             self.assertEqual(smoke.returncode, 0, smoke.stdout + smoke.stderr)
             self.assertIn("decision=PROCEED", smoke.stdout)
+            certification_smoke = subprocess.run(
+                [PYTHON, "-m", "powerkit", "certify", "pilot", "--json"],
+                cwd=source,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(
+                certification_smoke.returncode,
+                0,
+                certification_smoke.stdout + certification_smoke.stderr,
+            )
+            certification_result = json.loads(certification_smoke.stdout)
+            self.assertEqual(certification_result["summary"]["case_count"], 6)
 
     def test_package_rejects_tracked_symlink_candidate(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

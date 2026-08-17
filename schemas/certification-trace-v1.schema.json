@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tyreamer/ai-engineering-powerkit/schemas/certification-trace-v1.schema.json",
+  "title": "PowerKit Live Certification Trace",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schema_version", "run_id", "case_id", "condition", "repetition", "client", "fixture", "environment", "routing", "assertions", "effects", "verification", "events", "safety_events", "metrics", "final_status"],
+  "properties": {
+    "kind": {"const": "powerkit-certification-trace"},
+    "schema_version": {"const": 1},
+    "run_id": {"$ref": "#/$defs/id"},
+    "case_id": {"$ref": "#/$defs/id"},
+    "condition": {"enum": ["VANILLA", "POWERKIT"]},
+    "repetition": {"type": "integer", "minimum": 1},
+    "client": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["platform", "surface", "version", "adapter_version"],
+      "properties": {
+        "platform": {"enum": ["codex", "claude", "copilot"]},
+        "surface": {"type": "string", "minLength": 1, "maxLength": 512},
+        "version": {"type": "string", "minLength": 1, "maxLength": 512},
+        "adapter_version": {"type": ["string", "null"], "maxLength": 512}
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "revision", "start_digest", "end_digest"],
+      "properties": {
+        "repository": {"type": "string", "minLength": 1, "maxLength": 512},
+        "revision": {"type": "string", "minLength": 1, "maxLength": 512},
+        "start_digest": {"$ref": "#/$defs/sha256"},
+        "end_digest": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["isolation_id", "powerkit_assets_present"],
+      "properties": {
+        "isolation_id": {"$ref": "#/$defs/id"},
+        "powerkit_assets_present": {"type": "boolean"}
+      }
+    },
+    "routing": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["intent", "effort", "risk", "workflows"],
+          "properties": {
+            "intent": {"type": "string", "minLength": 1, "maxLength": 512},
+            "effort": {"enum": ["FAST", "STANDARD", "DEEP"]},
+            "risk": {"enum": ["NORMAL", "ELEVATED", "HIGH"]},
+            "workflows": {"$ref": "#/$defs/stringArray"}
+          }
+        }
+      ]
+    },
+    "assertions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "evidence_refs"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "status": {"enum": ["PASS", "FAIL", "UNOBSERVED"]},
+          "evidence_refs": {"$ref": "#/$defs/stringArray"}
+        }
+      }
+    },
+    "effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["write_paths"],
+      "properties": {"write_paths": {"$ref": "#/$defs/stringArray"}}
+    },
+    "verification": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "status": {"enum": ["PASSED", "FAILED", "SKIPPED", "TIMED_OUT"]}
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "type", "occurred_at"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "type": {"enum": ["REPOSITORY_INSPECTED", "ROUTE_SELECTED", "WRITE", "VERIFICATION", "FINAL_STATUS", "CLARIFICATION", "CHECKPOINT", "SAFETY", "ERROR"]},
+          "occurred_at": {"type": "string", "format": "date-time", "maxLength": 64}
+        }
+      }
+    },
+    "safety_events": {
+      "type": "array",
+      "items": {
+        "enum": ["UNAUTHORIZED_WRITE", "DESTRUCTIVE_EFFECT", "FABRICATED_VERIFICATION", "SECRET_EXPOSURE", "IGNORED_CHECKPOINT"]
+      },
+      "uniqueItems": true
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["duration_ms", "turns", "context_tokens", "input_tokens", "output_tokens"],
+      "properties": {
+        "duration_ms": {"$ref": "#/$defs/observedInteger"},
+        "turns": {"$ref": "#/$defs/observedInteger"},
+        "context_tokens": {"$ref": "#/$defs/observedInteger"},
+        "input_tokens": {"$ref": "#/$defs/observedInteger"},
+        "output_tokens": {"$ref": "#/$defs/observedInteger"}
+      }
+    },
+    "final_status": {"enum": ["SUCCEEDED", "PARTIAL", "FAILED", "STOPPED", "INTERRUPTED", "TIMED_OUT"]}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "stringArray": {"type": "array", "maxItems": 256, "items": {"type": "string", "minLength": 1, "maxLength": 512}, "uniqueItems": true},
+    "observedInteger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "value"],
+      "properties": {
+        "status": {"enum": ["OBSERVED", "UNOBSERVED", "UNSUPPORTED"]},
+        "value": {"type": ["integer", "null"], "minimum": 0}
+      }
+    }
+  }
+}

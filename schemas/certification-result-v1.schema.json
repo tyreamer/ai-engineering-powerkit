@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tyreamer/ai-engineering-powerkit/schemas/certification-result-v1.schema.json",
+  "title": "PowerKit Live Certification Pilot Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schema_version", "generated_at", "mode", "corpus", "cases", "runs", "pairs", "summary", "limitations"],
+  "properties": {
+    "kind": {"const": "powerkit-certification-result"},
+    "schema_version": {"const": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "mode": {"enum": ["PLAN", "SCORE"]},
+    "corpus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "sha256"],
+      "properties": {
+        "id": {"type": "string"},
+        "version": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "cases": {"type": "array", "items": {"$ref": "#/$defs/casePlan"}},
+    "runs": {"type": "array", "items": {"$ref": "#/$defs/run"}},
+    "pairs": {"type": "array", "items": {"$ref": "#/$defs/pair"}},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_count", "trace_count", "complete_pairs", "incomplete_pairs", "disqualified_runs"],
+      "properties": {
+        "case_count": {"$ref": "#/$defs/nonNegativeInteger"},
+        "trace_count": {"$ref": "#/$defs/nonNegativeInteger"},
+        "complete_pairs": {"$ref": "#/$defs/nonNegativeInteger"},
+        "incomplete_pairs": {"$ref": "#/$defs/nonNegativeInteger"},
+        "disqualified_runs": {"$ref": "#/$defs/nonNegativeInteger"}
+      }
+    },
+    "limitations": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "nonNegativeInteger": {"type": "integer", "minimum": 0},
+    "score": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["earned", "possible"],
+      "properties": {
+        "earned": {"$ref": "#/$defs/nonNegativeInteger"},
+        "possible": {"$ref": "#/$defs/nonNegativeInteger"}
+      }
+    },
+    "casePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "category", "fixture", "expected"],
+      "properties": {
+        "id": {"type": "string"},
+        "title": {"type": "string"},
+        "category": {"type": "string"},
+        "fixture": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repository", "revision", "setup_id", "sha256"],
+          "properties": {
+            "repository": {"type": "string"},
+            "revision": {"type": "string"},
+            "setup_id": {"type": "string"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "expected": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["intent", "effort", "risk", "constraints"],
+          "properties": {
+            "intent": {"type": "string"},
+            "effort": {"enum": ["FAST", "STANDARD", "DEEP"]},
+            "risk": {"enum": ["NORMAL", "ELEVATED", "HIGH"]},
+            "constraints": {"type": "array", "items": {"type": "string"}}
+          }
+        }
+      }
+    },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_outcome", "constraint_preservation", "routing_quality", "verification_quality", "completion_honesty"],
+      "properties": {
+        "task_outcome": {"$ref": "#/$defs/score"},
+        "constraint_preservation": {"$ref": "#/$defs/score"},
+        "routing_quality": {"$ref": "#/$defs/score"},
+        "verification_quality": {"$ref": "#/$defs/score"},
+        "completion_honesty": {"$ref": "#/$defs/score"}
+      }
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "case_id", "condition", "repetition", "client", "fixture", "dimensions", "total", "disqualified", "safety_events", "final_status", "metrics"],
+      "properties": {
+        "run_id": {"type": "string"},
+        "case_id": {"type": "string"},
+        "condition": {"enum": ["VANILLA", "POWERKIT"]},
+        "repetition": {"type": "integer", "minimum": 1},
+        "client": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["platform", "surface", "version", "adapter_version"],
+          "properties": {
+            "platform": {"enum": ["codex", "claude", "copilot"]},
+            "surface": {"type": "string"},
+            "version": {"type": "string"},
+            "adapter_version": {"type": ["string", "null"]}
+          }
+        },
+        "fixture": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repository", "revision", "start_digest", "end_digest"],
+          "properties": {
+            "repository": {"type": "string"},
+            "revision": {"type": "string"},
+            "start_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "end_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "dimensions": {"$ref": "#/$defs/dimensions"},
+        "total": {"$ref": "#/$defs/score"},
+        "disqualified": {"type": "boolean"},
+        "safety_events": {"type": "array", "uniqueItems": true, "items": {"enum": ["UNAUTHORIZED_WRITE", "DESTRUCTIVE_EFFECT", "FABRICATED_VERIFICATION", "SECRET_EXPOSURE", "IGNORED_CHECKPOINT"]}},
+        "final_status": {"enum": ["SUCCEEDED", "PARTIAL", "FAILED", "STOPPED", "INTERRUPTED", "TIMED_OUT"]},
+        "metrics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["duration_ms", "turns", "context_tokens", "input_tokens", "output_tokens"],
+          "properties": {
+            "duration_ms": {"$ref": "#/$defs/observation"},
+            "turns": {"$ref": "#/$defs/observation"},
+            "context_tokens": {"$ref": "#/$defs/observation"},
+            "input_tokens": {"$ref": "#/$defs/observation"},
+            "output_tokens": {"$ref": "#/$defs/observation"}
+          }
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "value"],
+      "properties": {
+        "status": {"enum": ["OBSERVED", "UNOBSERVED", "UNSUPPORTED"]},
+        "value": {"type": ["integer", "null"], "minimum": 0}
+      }
+    },
+    "pair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "repetition", "client", "status", "vanilla_run_id", "powerkit_run_id", "score_delta"],
+      "properties": {
+        "case_id": {"type": "string"},
+        "repetition": {"type": "integer", "minimum": 1},
+        "client": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["platform", "surface", "version"],
+          "properties": {
+            "platform": {"enum": ["codex", "claude", "copilot"]},
+            "surface": {"type": "string"},
+            "version": {"type": "string"}
+          }
+        },
+        "status": {"enum": ["COMPLETE", "INCOMPLETE"]},
+        "vanilla_run_id": {"type": ["string", "null"]},
+        "powerkit_run_id": {"type": ["string", "null"]},
+        "score_delta": {"type": ["integer", "null"]}
+      }
+    }
+  }
+}

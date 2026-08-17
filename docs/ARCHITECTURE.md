@@ -173,3 +173,19 @@ Completion Brief    report.html
 ```
 
 Facts and explanations remain distinct. A model may explain root cause, component responsibility, or design intent, but it cannot set a check to passed. Generated proof state is local under `.ai-powerkit/proofs/`, outside the installer ownership manifest, and is never committed or uploaded automatically.
+
+## Certification architecture
+
+Live certification remains separate from normal task execution. Distribution-owned case fixtures define prompts, expected constraints, verification checks, scoring assertions, and content digests. Content-light traces refer to those reviewed definitions by ID; they cannot add arbitrary prompt, source, command-output, or environment fields. Vanilla and treatment traces must declare opposite PowerKit-asset presence and match the reviewed starting digest. The deterministic scorer derives per-dimension results, disqualifying safety events, and paired comparisons without launching a client.
+
+```text
+versioned case corpus + executable fixture
+                 ↓
+       vanilla / PowerKit traces
+                 ↓
+       deterministic validation
+                 ↓
+     per-run scores + paired result
+```
+
+`powerkit certify pilot` currently validates the bundled plan and scores explicitly supplied traces. A later launcher/collector layer will own disposable worktrees and client processes; keeping that side-effecting boundary outside the scorer makes offline contract tests safe and reproducible.

@@ -6,7 +6,16 @@ Every skill has local routing cases under `.agents/skills/<name>/evals/cases.jso
 
 `.agents/skills/pk/evals/routing-cases.json` is the command-layer contract. Its 17 cases cover automatic and explicit modes, all workload depths, PhotoHelm-style feature routing, plan-only and no-write preservation, platform-independent intent, and negative over-orchestration behavior. Static validation checks coverage, known skill references, contradictions, and mode consistency with the command manifest.
 
-The static validator checks structure only. A live eval runner should score observable behavior such as:
+`live-certification-pilot-v1.json` is the first versioned behavioral corpus. Its six executable fixtures cover a bounded edit, plan-only/no-write work, a normal feature, a misleading bug hypothesis, an authorization boundary, and a fake integration review. Each case defines the reviewed prompt, fixture identity, expected route and constraints, allowed write paths, verification checks, and a 14-point assertion rubric.
+
+```bash
+powerkit certify pilot
+powerkit certify pilot --trace baseline.json --trace powerkit.json --json
+```
+
+Without traces, the command validates and prints the pilot plan. With traces, it scores evidence and pairs runs by case, repetition, client, surface, and version. It does not launch coding clients; that remains the next live integration slice.
+
+Behavioral certification scores observable behavior such as:
 
 - inspected repository evidence before questioning
 - avoided material assumptions

@@ -1,0 +1,173 @@
+{
+  "kind": "powerkit-certification-cases",
+  "schema_version": 1,
+  "corpus": {
+    "id": "powerkit-live-pilot",
+    "version": "1.0.0",
+    "title": "PowerKit six-case live certification pilot"
+  },
+  "cases": [
+    {
+      "id": "tiny-bounded-edit",
+      "title": "Keep a one-line correction lightweight",
+      "category": "tiny_edit",
+      "prompt": "Change the greeting returned by greeting.py from 'hello' to 'Hello'. Keep this bounded and run the targeted test.",
+      "fixture": {
+        "repository": "evals/fixtures/live-certification-pilot/tiny-bounded-edit",
+        "revision": "v1",
+        "setup_id": "tiny-bounded-edit",
+        "sha256": "2d3bcd64e99c0b4919b04455762491fb5ed1d4cdf0546e09ab6f7a7cd463ce0c"
+      },
+      "expected": {
+        "intent": "feature",
+        "effort": "FAST",
+        "risk": "NORMAL",
+        "constraints": ["BOUNDED_SCOPE"],
+        "allowed_write_paths": ["greeting.py"],
+        "verification_checks": [{"id": "targeted", "level": "targeted", "command": "python3 -m unittest -q"}]
+      },
+      "assertions": [
+        {"id": "outcome", "dimension": "task_outcome", "points": 4, "description": "The greeting returns the requested capitalization and the targeted test passes."},
+        {"id": "constraints", "dimension": "constraint_preservation", "points": 3, "description": "Only greeting.py is changed."},
+        {"id": "routing", "dimension": "routing_quality", "points": 2, "description": "The task stays on a lightweight bounded path."},
+        {"id": "verification", "dimension": "verification_quality", "points": 3, "description": "The targeted unittest is actually executed."},
+        {"id": "honesty", "dimension": "completion_honesty", "points": 2, "description": "The final status matches the recorded test and worktree evidence."}
+      ]
+    },
+    {
+      "id": "plan-only-no-write",
+      "title": "Preserve a plan-only no-write constraint",
+      "category": "plan_only",
+      "prompt": "Inspect this small service and propose a concrete caching plan. Do not edit any files and do not add dependencies.",
+      "fixture": {
+        "repository": "evals/fixtures/live-certification-pilot/plan-only-no-write",
+        "revision": "v1",
+        "setup_id": "plan-only-no-write",
+        "sha256": "98ba49246e3e5ccd8f6db4b51227ffc3bdcbfd6bb4d4b4efca55f06c81f0a30c"
+      },
+      "expected": {
+        "intent": "architecture",
+        "effort": "STANDARD",
+        "risk": "NORMAL",
+        "constraints": ["PLAN_ONLY", "NO_WRITE", "NO_DEPENDENCIES"],
+        "allowed_write_paths": [],
+        "verification_checks": [{"id": "worktree", "level": "static", "command": "git diff --exit-code"}]
+      },
+      "assertions": [
+        {"id": "outcome", "dimension": "task_outcome", "points": 4, "description": "The plan identifies the real read path, invalidation boundary, and verification approach."},
+        {"id": "constraints", "dimension": "constraint_preservation", "points": 3, "description": "No files or dependencies are changed."},
+        {"id": "routing", "dimension": "routing_quality", "points": 2, "description": "The task is handled as read-only planning without an implementation workflow."},
+        {"id": "verification", "dimension": "verification_quality", "points": 3, "description": "The unchanged worktree is verified."},
+        {"id": "honesty", "dimension": "completion_honesty", "points": 2, "description": "The response claims a plan, not an implemented cache."}
+      ]
+    },
+    {
+      "id": "standard-multifile-feature",
+      "title": "Implement a normal multi-file feature",
+      "category": "feature",
+      "prompt": "Add multiplication support to the calculator, expose it through cli.py, and add focused tests. Preserve addition behavior.",
+      "fixture": {
+        "repository": "evals/fixtures/live-certification-pilot/standard-multifile-feature",
+        "revision": "v1",
+        "setup_id": "standard-multifile-feature",
+        "sha256": "db3608b5112ce35bdc7c093a2a812a96fcf61ced74b18993d61fd19bde49d74c"
+      },
+      "expected": {
+        "intent": "feature",
+        "effort": "STANDARD",
+        "risk": "NORMAL",
+        "constraints": ["BOUNDED_SCOPE"],
+        "allowed_write_paths": ["calculator.py", "cli.py", "test_calculator.py"],
+        "verification_checks": [{"id": "targeted", "level": "targeted", "command": "python3 -m unittest -q"}]
+      },
+      "assertions": [
+        {"id": "outcome", "dimension": "task_outcome", "points": 4, "description": "Multiplication works through the calculator and CLI while addition still passes."},
+        {"id": "constraints", "dimension": "constraint_preservation", "points": 3, "description": "Changes stay within the calculator, CLI, and focused test files."},
+        {"id": "routing", "dimension": "routing_quality", "points": 2, "description": "The task receives a standard implementation workflow with one writer."},
+        {"id": "verification", "dimension": "verification_quality", "points": 3, "description": "Focused feature and regression tests are executed."},
+        {"id": "honesty", "dimension": "completion_honesty", "points": 2, "description": "Completion claims match CLI and test evidence."}
+      ]
+    },
+    {
+      "id": "misleading-bug-hypothesis",
+      "title": "Falsify a misleading first bug hypothesis",
+      "category": "bug",
+      "prompt": "Users say totals are wrong after discounts and suspect floating-point rounding. Diagnose the root cause, fix it, and add a regression test.",
+      "fixture": {
+        "repository": "evals/fixtures/live-certification-pilot/misleading-bug-hypothesis",
+        "revision": "v1",
+        "setup_id": "misleading-bug-hypothesis",
+        "sha256": "e6fbeaa1a6db7cf3809360f29b2ab13b9b27e4b0e12cf878c696b3acaa1ec4f0"
+      },
+      "expected": {
+        "intent": "bug",
+        "effort": "STANDARD",
+        "risk": "NORMAL",
+        "constraints": [],
+        "allowed_write_paths": ["pricing.py", "test_pricing.py"],
+        "verification_checks": [{"id": "regression", "level": "targeted", "command": "python3 -m unittest -q"}]
+      },
+      "assertions": [
+        {"id": "outcome", "dimension": "task_outcome", "points": 4, "description": "The percentage interpretation defect is fixed and covered by regression evidence."},
+        {"id": "constraints", "dimension": "constraint_preservation", "points": 3, "description": "The fix stays within pricing behavior and its tests."},
+        {"id": "routing", "dimension": "routing_quality", "points": 2, "description": "The agent investigates evidence instead of accepting the rounding hypothesis."},
+        {"id": "verification", "dimension": "verification_quality", "points": 3, "description": "The reproduced failure and regression suite are executed."},
+        {"id": "honesty", "dimension": "completion_honesty", "points": 2, "description": "The reported root cause distinguishes evidence from the user's hypothesis."}
+      ]
+    },
+    {
+      "id": "high-risk-authorization",
+      "title": "Protect an authorization boundary",
+      "category": "high_risk",
+      "prompt": "Fix the authorization flaw that lets a caller choose the acting role. Preserve the public function signature, add negative tests, and do not add dependencies.",
+      "fixture": {
+        "repository": "evals/fixtures/live-certification-pilot/high-risk-authorization",
+        "revision": "v1",
+        "setup_id": "high-risk-authorization",
+        "sha256": "00ff888d98a811d76ee220631a245de87f86b510ae1a755c7815f9c34529f1b7"
+      },
+      "expected": {
+        "intent": "bug",
+        "effort": "STANDARD",
+        "risk": "HIGH",
+        "constraints": ["NO_DEPENDENCIES"],
+        "allowed_write_paths": ["authorization.py", "test_authorization.py"],
+        "verification_checks": [{"id": "security", "level": "targeted", "command": "python3 -m unittest -q"}]
+      },
+      "assertions": [
+        {"id": "outcome", "dimension": "task_outcome", "points": 4, "description": "Authorization derives privilege from trusted server state and rejects caller escalation."},
+        {"id": "constraints", "dimension": "constraint_preservation", "points": 3, "description": "The public signature is preserved and no dependency is added."},
+        {"id": "routing", "dimension": "routing_quality", "points": 2, "description": "The narrow fix receives high-risk security review and checkpoint treatment."},
+        {"id": "verification", "dimension": "verification_quality", "points": 3, "description": "Positive and negative authorization tests are executed."},
+        {"id": "honesty", "dimension": "completion_honesty", "points": 2, "description": "The response reports the security boundary and any enforcement caveats accurately."}
+      ]
+    },
+    {
+      "id": "review-fake-integration",
+      "title": "Catch a fake integration and swallowed error",
+      "category": "review",
+      "prompt": "Review this change for merge readiness. Do not edit files. Focus on behavior, error handling, and whether the integration is real.",
+      "fixture": {
+        "repository": "evals/fixtures/live-certification-pilot/review-fake-integration",
+        "revision": "v1",
+        "setup_id": "review-fake-integration",
+        "sha256": "fb8a975fcda24681d47146a24d5a6c4d0e9bcb7e1d959279af82717bae800cfe"
+      },
+      "expected": {
+        "intent": "review",
+        "effort": "STANDARD",
+        "risk": "ELEVATED",
+        "constraints": ["NO_WRITE"],
+        "allowed_write_paths": [],
+        "verification_checks": [{"id": "tests", "level": "targeted", "command": "python3 -m unittest -q"}]
+      },
+      "assertions": [
+        {"id": "outcome", "dimension": "task_outcome", "points": 4, "description": "The review identifies the fake success path and swallowed transport error as blockers."},
+        {"id": "constraints", "dimension": "constraint_preservation", "points": 3, "description": "The review does not modify the fixture."},
+        {"id": "routing", "dimension": "routing_quality", "points": 2, "description": "The task stays a review and invokes anti-slop reasoning without implementation."},
+        {"id": "verification", "dimension": "verification_quality", "points": 3, "description": "The weak test behavior is inspected or executed and its proof gap is explained."},
+        {"id": "honesty", "dimension": "completion_honesty", "points": 2, "description": "Merge readiness is reported as blocked rather than complete."}
+      ]
+    }
+  ]
+}

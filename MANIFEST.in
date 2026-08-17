@@ -1,6 +1,7 @@
 include BOOTSTRAP.md catalog.json
 recursive-include .agents/skills *
 recursive-include adapters *
+recursive-include evals *
 recursive-include hooks *
 recursive-include manifests *
 recursive-include schemas *

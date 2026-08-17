@@ -2,6 +2,8 @@
 
 PowerKit itself must be evaluated. Otherwise it can become a large set of instructions that feels sophisticated but adds latency and confusion.
 
+[Live Client Certification](LIVE_CLIENT_CERTIFICATION.md) is the normative comparative protocol. It defines paired baseline and treatment runs, the initial client scope, the behavioral rubric, the privacy boundary, and the release exit criteria. This document describes the broader measurement principles that remain applicable to static and team evals.
+
 ## Routing evals
 
 Each skill includes positive and negative cases in `evals/cases.json`.
@@ -19,7 +21,7 @@ Review:
 - Does it collide with another skill?
 - Is explicit invocation clearer than implicit invocation?
 
-The static validator checks case presence and structure. A future live eval runner should execute these against supported assistants.
+The static validator checks case presence and structure. `powerkit certify pilot` now validates the six-case corpus and deterministically scores supplied trace pairs. It does not yet launch supported assistants or create isolated starting states; those live integrations must compare vanilla and PowerKit-enabled conditions from equivalent fixtures.
 
 ## Behavioral evals
 
@@ -51,6 +53,10 @@ Track medians and distributions, not only anecdotes:
 - Requested model/reasoning/agent policy versus observed host telemetry when available.
 - Broker `PROCEED`, `CHECKPOINT`, and `STOP` rates by surface.
 - Tasks where the user bypassed the toolkit.
+
+Keep quality, safety, and resource results separate. An aggregate behavioral score may summarize task outcome, constraint preservation, routing, verification, and completion honesty, but it may not hide an unauthorized write or other disqualifying safety event. Token, context, turn, latency, and rework measures remain separate cost dimensions.
+
+Comparative claims must identify the task corpus, fixture revisions, client versions, adapter versions, PowerKit version, run count, failures, and missing telemetry. A harness pilot proves the evaluation machinery; it does not prove a general product-performance claim.
 
 ## Quality guardrail
 

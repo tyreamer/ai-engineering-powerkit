@@ -507,6 +507,17 @@ The next frontier is not more prompts.
 
 It is **measured execution quality across live clients**.
 
+The highest-priority post-v0.4 initiative is a paired [Live Client Certification harness](docs/LIVE_CLIENT_CERTIFICATION.md): run the same task from the same repository state with vanilla and PowerKit-enabled clients, score observable behavior, preserve safety failures, and report quality separately from token, context, turn, and latency costs. The broader initiative ordering and explicit non-goals are tracked in the [roadmap](docs/ROADMAP.md).
+
+The first offline pilot slice is available now:
+
+```bash
+powerkit certify pilot
+powerkit certify pilot --trace baseline.json --trace powerkit.json --json
+```
+
+It validates six versioned executable cases and scores supplied evidence. It does not yet launch clients, create paired worktrees, or claim live certification.
+
 PowerKit is being designed so its behavior can be evaluated against unmodified coding assistants on things that actually matter:
 
 * task success

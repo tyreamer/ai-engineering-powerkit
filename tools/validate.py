@@ -295,6 +295,65 @@ def validate_execution_broker(
             break
 
 
+def validate_certification(
+    distribution: Mapping[str, Any] | None,
+    errors: list[str],
+) -> None:
+    schema_contracts = {
+        "certification_cases": "schemas/certification-case-v1.schema.json",
+        "certification_trace": "schemas/certification-trace-v1.schema.json",
+        "certification_result": "schemas/certification-result-v1.schema.json",
+    }
+    schemas = distribution.get("schemas") if isinstance(distribution, Mapping) else None
+    for key, relative in schema_contracts.items():
+        if not isinstance(schemas, Mapping) or schemas.get(key) != relative:
+            errors.append(f"manifests/powerkit.json must expose {key} as {relative}")
+        payload = validate_json(ROOT / relative, errors)
+        if not isinstance(payload, dict):
+            continue
+        version = payload.get("properties", {}).get("schema_version", {})
+        if not isinstance(version, dict) or version.get("const") != 1:
+            errors.append(f"{relative} must define schema version 1")
+
+    trace_schema = validate_json(ROOT / schema_contracts["certification_trace"], errors)
+    if isinstance(trace_schema, dict):
+        trace_text = json.dumps(trace_schema).lower()
+        for forbidden in ("prompt_body", "source_content", "command_output", "environment_values"):
+            if forbidden in trace_text:
+                errors.append(
+                    f"{schema_contracts['certification_trace']} must not collect {forbidden}"
+                )
+
+    corpus_path = ROOT / "evals/live-certification-pilot-v1.json"
+    corpus = validate_json(corpus_path, errors)
+    if isinstance(corpus, dict):
+        try:
+            from powerkit.certification import validate_case_corpus
+
+            validate_case_corpus(corpus, asset_root=ROOT)
+        except (ImportError, RuntimeError) as exc:
+            errors.append(f"{corpus_path.relative_to(ROOT)}: {exc}")
+        cases = corpus.get("cases")
+        if not isinstance(cases, list) or len(cases) != 6:
+            errors.append(
+                f"{corpus_path.relative_to(ROOT)}: pilot corpus must contain exactly six cases"
+            )
+        else:
+            categories = {case.get("category") for case in cases if isinstance(case, dict)}
+            expected_categories = {
+                "tiny_edit",
+                "plan_only",
+                "feature",
+                "bug",
+                "high_risk",
+                "review",
+            }
+            if categories != expected_categories:
+                errors.append(
+                    f"{corpus_path.relative_to(ROOT)}: pilot categories are incomplete"
+                )
+
+
 def validate_agent_adapters(expected_agents: set[str], errors: list[str]) -> None:
     agent_roots = {
         "codex": (ROOT / "adapters/codex/agents", ".toml"),
@@ -800,6 +859,8 @@ def main() -> int:
             errors.append("manifests/powerkit.json must expose the proof command")
         if not isinstance(commands, dict) or commands.get("broker") != "powerkit broker":
             errors.append("manifests/powerkit.json must expose the broker command")
+        if not isinstance(commands, dict) or commands.get("certify") != "powerkit certify":
+            errors.append("manifests/powerkit.json must expose the certify command")
         schemas = distribution.get("schemas")
         if not isinstance(schemas, dict) or schemas.get("proof_manifest") != (
             "schemas/proof-manifest.schema.json"
@@ -860,6 +921,10 @@ def main() -> int:
     validate_execution_broker(
         distribution if isinstance(distribution, Mapping) else None,
         project_template if isinstance(project_template, Mapping) else None,
+        errors,
+    )
+    validate_certification(
+        distribution if isinstance(distribution, Mapping) else None,
         errors,
     )
 

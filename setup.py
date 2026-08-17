@@ -25,6 +25,7 @@ SHARE_ROOT = Path("share/ai-engineering-powerkit")
 ASSET_ROOTS = (
     Path(".agents/skills"),
     Path("adapters"),
+    Path("evals"),
     Path("hooks"),
     Path("manifests"),
     Path("schemas"),

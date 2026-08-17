@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tyreamer/ai-engineering-powerkit/schemas/certification-case-v1.schema.json",
+  "title": "PowerKit Live Certification Case Corpus",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schema_version", "corpus", "cases"],
+  "properties": {
+    "kind": {"const": "powerkit-certification-cases"},
+    "schema_version": {"const": 1},
+    "corpus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "title"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 512}
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 6,
+      "items": {"$ref": "#/$defs/case"}
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "stringArray": {"type": "array", "maxItems": 256, "items": {"type": "string", "minLength": 1, "maxLength": 512}, "uniqueItems": true},
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "category", "prompt", "fixture", "expected", "assertions"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 512},
+        "category": {
+          "enum": ["tiny_edit", "plan_only", "feature", "bug", "high_risk", "review"]
+        },
+        "prompt": {"type": "string", "minLength": 1, "maxLength": 16000},
+        "fixture": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repository", "revision", "setup_id", "sha256"],
+          "properties": {
+            "repository": {"type": "string", "minLength": 1, "maxLength": 512},
+            "revision": {"type": "string", "minLength": 1, "maxLength": 512},
+            "setup_id": {"$ref": "#/$defs/id"},
+            "sha256": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        "expected": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["intent", "effort", "risk", "constraints", "allowed_write_paths", "verification_checks"],
+          "properties": {
+            "intent": {"enum": ["feature", "bug", "review", "architecture", "ui", "dependency", "auto"]},
+            "effort": {"enum": ["FAST", "STANDARD", "DEEP"]},
+            "risk": {"enum": ["NORMAL", "ELEVATED", "HIGH"]},
+            "constraints": {
+              "type": "array",
+              "uniqueItems": true,
+              "maxItems": 11,
+              "items": {"enum": ["PLAN_ONLY", "NO_WRITE", "NO_NETWORK", "NO_DEPENDENCIES", "NO_PARALLEL", "NO_SHELL", "COST_SENSITIVE", "LATENCY_SENSITIVE", "STRONGEST_REASONING", "BOUNDED_SCOPE", "ISOLATION_REQUIRED"]}
+            },
+            "allowed_write_paths": {"$ref": "#/$defs/stringArray"},
+            "verification_checks": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["id", "level", "command"],
+                "properties": {
+                  "id": {"$ref": "#/$defs/id"},
+                  "level": {"enum": ["static", "targeted", "broader", "runtime"]},
+                  "command": {"type": "string", "minLength": 1, "maxLength": 4096}
+                }
+              }
+            }
+          }
+        },
+        "assertions": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "dimension", "points", "description"],
+            "properties": {
+              "id": {"$ref": "#/$defs/id"},
+              "dimension": {"enum": ["task_outcome", "constraint_preservation", "routing_quality", "verification_quality", "completion_honesty"]},
+              "points": {"type": "integer", "minimum": 1, "maximum": 4},
+              "description": {"type": "string", "minLength": 1, "maxLength": 512}
+            }
+          }
+        }
+      }
+    }
+  }
+}
