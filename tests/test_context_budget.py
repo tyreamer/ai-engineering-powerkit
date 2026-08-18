@@ -833,11 +833,11 @@ class ContextBudgetTests(unittest.TestCase):
                 {
                     "schema_version": 2,
                     "toolkit": "ai-engineering-powerkit",
-                    "version": "0.4.0",
+                    "version": "0.5.0",
                     "source": {
                         "repository": "https://github.com/tyreamer/ai-engineering-powerkit",
-                        "version": "0.4.0",
-                        "ref": "v0.4.0"
+                        "version": "0.5.0",
+                        "ref": "v0.5.0"
                     },
                     "scope": "project",
                     "profiles": ["foundation"],

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.0 — 2026-08-18
+
 - Added versioned live-certification case, trace, and result contracts plus a reviewed six-case pilot corpus with executable fixture repositories.
 - Added `powerkit certify pilot` to validate the bundled plan and deterministically score supplied vanilla/PowerKit trace pairs without launching clients or spending provider tokens.
 - Added fail-closed trace validation for schema versions, baseline contamination, unknown retained fields, fixture identity, evidence references, telemetry provenance, path containment, duplicate runs, unauthorized writes, and fabricated verification.

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "powerkit_version": "0.4.0",
+  "powerkit_version": "0.5.0",
   "repository": "https://github.com/tyreamer/ai-engineering-powerkit",
   "bootstrap": "BOOTSTRAP.md",
   "entrypoint": "powerkit",
@@ -65,8 +65,8 @@
     "adapter_overrides": {}
   },
   "release": {
-    "tag": "v0.4.0",
+    "tag": "v0.5.0",
     "python": ">=3.11",
-    "install": "pipx install git+https://github.com/tyreamer/ai-engineering-powerkit.git@v0.4.0"
+    "install": "pipx install git+https://github.com/tyreamer/ai-engineering-powerkit.git@v0.5.0"
   }
 }

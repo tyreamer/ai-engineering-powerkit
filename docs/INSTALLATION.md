@@ -94,7 +94,7 @@ Normal sync follows the project pin, not `main`. For an explicit update, resolve
 ```bash
 python3 -m powerkit update \
   --target ../product-repo \
-  --version 0.4.0 \
+  --version 0.5.0 \
   --yes
 ```
 
@@ -121,7 +121,7 @@ Project configuration is preserved for team reconstruction unless `--purge-confi
 For a published release tag:
 
 ```bash
-pipx install git+https://github.com/tyreamer/ai-engineering-powerkit.git@v0.4.0
+pipx install git+https://github.com/tyreamer/ai-engineering-powerkit.git@v0.5.0
 ```
 
 This exposes `powerkit`. The wheel contains canonical distribution assets packaged directly from `.agents/skills`, adapters, hooks, and templates; those assets are not duplicated in the source repository.
