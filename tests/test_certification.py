@@ -46,7 +46,7 @@ class CertificationTests(unittest.TestCase):
     ) -> dict:
         case = self.cases[case_id]
         if adapter_version is None and condition == "POWERKIT":
-            adapter_version = "0.5.1"
+            adapter_version = "0.5.2"
         assertion_records = []
         for assertion in case["assertions"]:
             evidence = "verification:targeted"
@@ -262,7 +262,7 @@ class CertificationTests(unittest.TestCase):
 
     def test_trace_rejects_baseline_contamination_unknown_fields_and_fake_refs(self) -> None:
         baseline = self.trace("tiny-bounded-edit", "VANILLA")
-        baseline["client"]["adapter_version"] = "0.5.1"
+        baseline["client"]["adapter_version"] = "0.5.2"
         with self.assertRaisesRegex(RuntimeError, "Vanilla traces"):
             certification.validate_trace(baseline, self.cases["tiny-bounded-edit"])
 
