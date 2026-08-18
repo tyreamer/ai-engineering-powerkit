@@ -92,6 +92,6 @@ Report concisely:
 - number of installed skills and whether agents are enabled;
 - conflicts or unresolved paths;
 - doctor result;
-- daily-use command: `/pk` or the platform's native `pk` skill invocation.
+- PowerKit now routes your engineering tasks automatically. (Optional explicit modes: `/pk <mode>`)
 
 Bootstrap metadata is for installation operations only. Do not inject this file or every skill body into normal coding requests.

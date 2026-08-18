@@ -1,6 +1,6 @@
 ---
 name: pk
-description: "Routes explicit /pk or $pk requests to the lightest justified PowerKit workflow. Use only when the user invokes or asks for PowerKit routing; do not use for ordinary requests."
+description: "Routes requests to the lightest justified PowerKit workflow. Use automatically for ordinary engineering tasks; the user does not need to explicitly invoke /pk or $pk."
 license: MIT
 metadata:
   author: ai-engineering-powerkit

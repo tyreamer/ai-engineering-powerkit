@@ -60,11 +60,11 @@ Follow BOOTSTRAP.md, preserve existing project configuration,
 verify the installation, and tell me when PowerKit is ready.
 ```
 
-**2. Invoke PowerKit:**
-Once installed, explicitly invoke the `pk` skill and describe the task. Native syntax depends on the host:
-- **Codex**: `$pk`
-- **Claude Code**: `/pk`
-- **GitHub Copilot**: `/pk` (where supported)
+**2. Work Normally:**
+Once installed, PowerKit automatically routes your requests to the appropriate workflow. You do not need to explicitly invoke the `pk` skill for ordinary tasks. However, you can still use explicit modes depending on the host:
+- **Codex**: `$pk <mode>`
+- **Claude Code**: `/pk <mode>`
+- **GitHub Copilot**: `/pk <mode>` (where supported)
 
 ---
 
@@ -93,7 +93,7 @@ The `pk` skill routes requests based on actual need. Effort controls resources, 
 
 | Command | Use it when |
 |---|---|
-| `/pk` or `$pk` | Let PowerKit choose the smallest safe route |
+| *(Automatic)* | Let PowerKit choose the smallest safe route for normal requests |
 | `pk feature` | Build meaningful functionality |
 | `pk bug` | Find the actual cause before fixing |
 | `pk review` | Challenge work before merge |
