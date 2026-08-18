@@ -14,7 +14,7 @@ PowerKit is a portable engineering harness for Codex, Claude Code, and GitHub Co
 
 ---
 
-## 🏗️ How It Works
+## How It Works
 
 PowerKit changes the workflow around the model.
 
@@ -46,7 +46,7 @@ When the agent finishes a task, PowerKit shows you what you now own, how it work
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 You do not need to learn PowerKit before using it. Just give it to your coding assistant.
 
@@ -68,26 +68,26 @@ Once installed, explicitly invoke the `pk` skill and describe the task. Native s
 
 ---
 
-## 💡 Core Principles
+## Core Principles
 
-### 🔍 Looks before it asks
+### Looks before it asks
 Coding assistants often ask questions the repository can already answer. PowerKit pushes the agent to inspect the code, configuration, tests, documentation, decisions, and current state before sending work back to you. Questions are reserved for decisions that actually require a human.
 
-### 🛡️ Separates facts from guesses
+### Separates facts from guesses
 Not every missing detail is ambiguity. PowerKit distinguishes between evidence (supported by repository), safe defaults (conventional/reversible), and material assumptions (impacts architecture, security, etc.). Only material assumptions should stop execution.
 
-### 🧪 Doesn't let the first bug theory win
+### Doesn't let the first bug theory win
 A plausible explanation is not a root cause. The debugging workflow requires reproduction, competing hypotheses, evidence, falsification, the smallest justified fix, and regression proof.
 
-### ✅ Generated code is not finished work
+### Generated code is not finished work
 Writing the implementation is one stage. PowerKit independently looks for placeholders, swallowed errors, dead abstractions, missing failure paths, security mistakes, and unsupported completion claims.
 
-### ⚖️ Scales effort, instead of maximizing it
+### Scales effort, instead of maximizing it
 More agents, more reasoning, and more context are not automatically better. PowerKit deliberately keeps easy work cheap and reserves heavyweight workflows for work that deserves them.
 
 ---
 
-## 🛠️ The `pk` Command Surface
+## The `pk` Command Surface
 
 The `pk` skill routes requests based on actual need. Effort controls resources, Risk controls permissions. 
 
@@ -106,7 +106,7 @@ The `pk` skill routes requests based on actual need. Effort controls resources, 
 
 ---
 
-## ⚙️ Architecture & Execution
+## Architecture & Execution
 
 ### Effort × Risk Matrix
 PowerKit classifies two independent axes: **Effort** (`FAST` | `STANDARD` | `DEEP`) and **Risk** (`NORMAL` | `ELEVATED` | `HIGH`). 
@@ -140,16 +140,19 @@ PowerKit uses deterministic tooling for initialization, status checks, effort/ri
 
 ---
 
-## 🛡️ Engineering for Teams
+## Engineering for Teams
 
-- **Progressive Disclosure:** Not every skill belongs in every prompt. PowerKit loads always-on metadata, then routing, then skills, then deeper references only if needed.
-- **Context Budget Auditor:** PowerKit watches its own weight. Use `powerkit context audit --target .` to measure what PowerKit adds to coding-agent context.
-- **Agent-Native & Team Sync:** PowerKit is designed for coding assistants to manage. Teammates can sync project configurations using `powerkit sync` from `.ai-powerkit/project.json` without manually reconstructing agent setups.
-- **Safety by Design:** Path-containment checks, symlink defenses, explicit version pins, and dry-runs for mutating lifecycle commands. It is not a security sandbox, but it enforces strict operational constraints.
+Progressive disclosure ensures that not every skill belongs in every prompt. PowerKit loads always-on metadata, then routing, then skills, then deeper references only if needed.
+
+A context budget auditor monitors prompt weight. You can use `powerkit context audit --target .` to measure what PowerKit adds to the coding-agent context.
+
+PowerKit is agent-native and syncs across teams. Coding assistants manage it, and teammates can sync project configurations using `powerkit sync` from `.ai-powerkit/project.json` without manually reconstructing agent setups.
+
+It implements safety by design using path-containment checks, symlink defenses, explicit version pins, and dry-runs for mutating lifecycle commands. It is not a security sandbox, but it enforces strict operational constraints.
 
 ---
 
-## 📂 Repository Map
+## Repository Map
 
 ```text
 .agents/skills/     Canonical portable skills, including the pk router
@@ -167,7 +170,7 @@ BOOTSTRAP.md        Entry point for coding assistants managing PowerKit
 
 ---
 
-## 🛣️ Project Status & Roadmap
+## Project Status & Roadmap
 
 PowerKit is an integration candidate for OpenAI Codex, Anthropic Claude Code, and GitHub Copilot. 
 
@@ -177,10 +180,10 @@ See the [Live Client Certification harness](docs/LIVE_CLIENT_CERTIFICATION.md) a
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 A useful PowerKit contribution is a repeatable engineering behavior with a clear reason to exist, explicit activation boundaries, known failure cases, deterministic checks, and evidence that it improves outcomes. See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution model.
 
-## 📄 License
+## License
 
 MIT
