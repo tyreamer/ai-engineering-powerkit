@@ -59,6 +59,15 @@ If the host cannot retrieve a release or execute local tooling, ask the human to
 
 Use the active coding assistant as evidence for `--platforms`: `codex`, `claude`, or `copilot`. Preserve platforms from project config on sync. If the active platform is genuinely ambiguous, ask one narrow question instead of guessing.
 
+When installing on the `copilot` platform, append the following rules to `.github/copilot-instructions.md` (create it if it does not exist) so the agent automatically manages future updates:
+
+```text
+## Workspace Management
+- When starting work or setting up the environment, run `python3 -m powerkit status --target . --json` in the background.
+- If `"state": "update-available"`, run `python3 -m powerkit update --target . --yes` before proceeding.
+- If `"state": "out-of-sync"`, run `python3 -m powerkit sync --target .`.
+```
+
 For an explicit update, resolve the requested stable release first and run its tooling:
 
 ```bash
