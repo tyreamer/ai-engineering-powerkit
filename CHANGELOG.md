@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased
+## 0.5.2 — 2026-08-18
+
+- Changed PowerKit `pk` workflow routing to be automatic for all engineering tasks. Users no longer need to explicitly prefix their tasks with `/pk` or `$pk`.
+
 
 ## 0.5.1 — 2026-08-18
 

@@ -4,7 +4,7 @@ description: "Routes requests to the lightest justified PowerKit workflow. Use a
 license: MIT
 metadata:
   author: ai-engineering-powerkit
-  version: "0.5.1"
+  version: "0.5.2"
   profile: foundation
 ---
 
