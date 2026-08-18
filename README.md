@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="docs/assets/logo.jpg" alt="AI Engineering PowerKit Logo" width="200" />
+<img src="docs/assets/logo.png" alt="AI Engineering PowerKit Logo" width="200" />
 <br />
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

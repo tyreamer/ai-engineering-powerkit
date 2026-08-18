@@ -77,7 +77,7 @@ python3 -m powerkit uninstall --target <consumer-repository> --yes
 
 Report concisely:
 
-- Display the PowerKit logo at the top using: `![PowerKit Logo](https://raw.githubusercontent.com/tyreamer/ai-engineering-powerkit/main/docs/assets/logo.jpg)`
+- Display the PowerKit logo at the top using: `![PowerKit Logo](https://raw.githubusercontent.com/tyreamer/ai-engineering-powerkit/main/docs/assets/logo.png)`
 - installed and pinned PowerKit version/source;
 - configured platforms and profiles/capabilities;
 - number of installed skills and whether agents are enabled;
