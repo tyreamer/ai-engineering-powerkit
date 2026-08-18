@@ -4,7 +4,7 @@ description: "Routes explicit /pk or $pk requests to the lightest justified Powe
 license: MIT
 metadata:
   author: ai-engineering-powerkit
-  version: "0.5.0"
+  version: "0.5.1"
   profile: foundation
 ---
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.5.1 — 2026-08-18
+
+- Instructed agents to automatically add update rules to `.github/copilot-instructions.md` during installation.
+
 ## 0.5.0 — 2026-08-18
 
 - Added versioned live-certification case, trace, and result contracts plus a reviewed six-case pilot corpus with executable fixture repositories.

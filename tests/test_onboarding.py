@@ -350,12 +350,12 @@ class AgentOnboardingTests(unittest.TestCase):
             self.assertEqual(json.loads(status.stdout)["state"], "update-available")
 
             result = self.run_powerkit(
-                "update", "--target", str(target), "--version", "0.5.0", "--yes"
+                "update", "--target", str(target), "--version", "0.5.1", "--yes"
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("# Consumer rules", instruction.read_text(encoding="utf-8"))
             updated_config = json.loads(config_path.read_text(encoding="utf-8"))
-            self.assertEqual(updated_config["powerkit"]["version"], "0.5.0")
+            self.assertEqual(updated_config["powerkit"]["version"], "0.5.1")
             doctor = self.run_powerkit("doctor", "--target", str(target))
             self.assertEqual(doctor.returncode, 0, doctor.stdout + doctor.stderr)
 
