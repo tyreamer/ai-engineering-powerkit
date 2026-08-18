@@ -8,21 +8,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
-**Your coding assistant can write code. PowerKit makes it earn “done.”**
-
 PowerKit is a portable engineering harness for Codex, Claude Code, and GitHub Copilot.
 
 </div>
-
----
-
-## ⚡ The Hook
-
-Most coding agents can produce impressive code. They can also start too early, guess when they should inspect, chase the first plausible bug, widen scope without permission, trust their own implementation, and declare victory before the work is actually proven.
-
-**You bring the intent. PowerKit brings the engineering discipline.**
-
-It gives coding assistants something the model alone does not have: **a disciplined way to work.** PowerKit knows when to spend more. Small changes stay fast. Hard problems can receive deeper reasoning, focused investigators, broader verification, and stronger proof. High-risk work receives tighter permissions and independent checks instead of merely receiving more compute.
 
 ---
 
@@ -47,14 +35,14 @@ flowchart TD
         Verify --> Challenge[Challenge the Result]
     end
     
-    Challenge --> Done([Earn 'Done'])
+    Challenge --> Done([Done])
     
     style User fill:#f9f,stroke:#333,stroke-width:2px
     style Done fill:#bbf,stroke:#333,stroke-width:2px
     style PowerKit Discipline fill:#f4f4f4,stroke:#666,stroke-width:1px,stroke-dasharray: 5 5
 ```
 
-When the agent says it is done, **PowerKit shows you what you now own, how it works, and how it was proven.** Its Proof Pack starts with a concise Completion Brief, preserves machine evidence locally, and adds an offline visual report when the work is complex enough to benefit from one.
+When the agent finishes a task, PowerKit shows you what you now own, how it works, and how it was proven. Its Proof Pack starts with a concise Completion Brief, preserves machine evidence locally, and adds an offline visual report when the work is complex enough to benefit from one.
 
 ---
 
@@ -89,7 +77,7 @@ Coding assistants often ask questions the repository can already answer. PowerKi
 Not every missing detail is ambiguity. PowerKit distinguishes between evidence (supported by repository), safe defaults (conventional/reversible), and material assumptions (impacts architecture, security, etc.). Only material assumptions should stop execution.
 
 ### 🧪 Doesn't let the first bug theory win
-A plausible explanation is not a root cause. The debugging workflow emphasizes reproduction, competing hypotheses, evidence, falsification, the smallest justified fix, and regression proof.
+A plausible explanation is not a root cause. The debugging workflow requires reproduction, competing hypotheses, evidence, falsification, the smallest justified fix, and regression proof.
 
 ### ✅ Generated code is not finished work
 Writing the implementation is one stage. PowerKit independently looks for placeholders, swallowed errors, dead abstractions, missing failure paths, security mistakes, and unsupported completion claims.
@@ -183,9 +171,7 @@ BOOTSTRAP.md        Entry point for coding assistants managing PowerKit
 
 PowerKit is an integration candidate for OpenAI Codex, Anthropic Claude Code, and GitHub Copilot. 
 
-**The next frontier is not more prompts. It is measured execution quality across live clients.**
-
-The highest-priority upcoming initiative is a paired Live Client Certification harness: run the same task from the same repository state with vanilla and PowerKit-enabled clients, score observable behavior, preserve safety failures, and report quality separately from token, context, turn, and latency costs. 
+The next goal is a paired Live Client Certification harness: run the same task from the same repository state with vanilla and PowerKit-enabled clients, score observable behavior, preserve safety failures, and report quality separately from token, context, turn, and latency costs. 
 
 See the [Live Client Certification harness](docs/LIVE_CLIENT_CERTIFICATION.md) and [Roadmap](docs/ROADMAP.md) for more details.
 
