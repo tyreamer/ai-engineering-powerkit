@@ -13,7 +13,7 @@ This repository distributes AI-assistant customizations. Treat every instruction
 - Preserve scope and existing behavior not implicated by the request.
 - Ask before destructive or irreversible work, new production dependencies, public contract changes, security-boundary changes, or unsupported material architecture choices.
 - Pair implementation with targeted tests and the appropriate broader or runtime verification.
-- When the user invokes `/pk` or `$pk`, load the `pk` skill and route only the requested task.
+- Automatically apply the `pk` skill to all engineering tasks to route and manage the workflow. The user does not need to explicitly invoke `/pk` or `$pk`.
 - Run `anti-slop-review` before accepting work that may contain placeholders, fake integration, swallowed errors, weak tests, or partial behavior.
 - Do not report full completion when required verification is unavailable. State exactly what was and was not proven.
 - Leave a `decision-handoff` for work that will continue in another session or by another person.
