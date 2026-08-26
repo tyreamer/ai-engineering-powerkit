@@ -25,7 +25,7 @@ Classify the repository:
 
 | State | Evidence | Action |
 |---|---|---|
-| Not installed | Neither file exists | Do nothing if globally installed. If global is missing, `powerkit init` (defaults to global). |
+| Not installed | Neither file exists | Do nothing if globally installed. If global is missing, `python3 tools/install.py` (installs globally). |
 | Team clone | Project config exists; install manifest does not | Resolve `powerkit.source.ref`, then sync. |
 | Current | Both versions/selections agree and doctor passes | Do not reinstall; report ready. |
 | Behind | User requested an update and a newer stable tag was selected | Run that release's update command. |
@@ -38,10 +38,10 @@ The project version pin takes precedence for normal sync and team onboarding if 
 
 Prefer the release tag recorded in the project config. For a fresh install, use `release.tag` from `manifests/powerkit.json`. Obtain that exact release in a temporary checkout or install it with the manifest's `release.install` command.
 
-From a resolved PowerKit checkout, commands are directly runnable to install globally:
+From a resolved PowerKit checkout, run the installer to install PowerKit globally into the user's environment:
 
 ```bash
-python3 -m powerkit init --platforms <platforms> --yes
+python3 tools/install.py --platforms <platforms> --yes
 ```
 
 An installed distribution exposes the equivalent `powerkit` command.

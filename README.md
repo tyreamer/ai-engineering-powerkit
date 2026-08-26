@@ -58,7 +58,7 @@ Install AI Engineering PowerKit globally into my coding environment:
 
 https://github.com/tyreamer/ai-engineering-powerkit
 
-Follow BOOTSTRAP.md to perform a global installation (`powerkit init`),
+Follow BOOTSTRAP.md to perform a global installation (`python3 tools/install.py`),
 verify the installation, and tell me when PowerKit is ready.
 ```
 
