@@ -1169,6 +1169,7 @@ def main() -> int:
     parser.add_argument("--scope", choices=("project", "user"), default="project")
     parser.add_argument("--profiles", default="all")
     parser.add_argument("--platforms", default="codex,claude,copilot")
+    parser.add_argument("--yes", action="store_true", help="Automatically confirm installation.")
     parser.add_argument("--include-agents", action="store_true")
     parser.add_argument(
         "--stage-hooks",

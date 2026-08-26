@@ -17,4 +17,15 @@ from powerkit.installer import (  # noqa: E402
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    exit_code = main()
+    if exit_code == 0 and "--dry-run" not in sys.argv:
+        import subprocess
+        print("Installing PowerKit package into the Python environment...", file=sys.stderr)
+        try:
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "--user", str(ROOT)],
+                stdout=subprocess.DEVNULL,
+            )
+        except subprocess.CalledProcessError as exc:
+            print(f"Warning: Failed to install Python package: {exc}", file=sys.stderr)
+    raise SystemExit(exit_code)
