@@ -77,11 +77,11 @@ Capability contracts are distribution assets read by the installed CLI. They are
 
 The default `all` selection includes the canonical `pk` skill and every specialist workflow referenced by its explicit modes. A deliberately narrower profile selection keeps the same command surface when it includes `foundation`, but `pk` can compose only the workflows that are installed and must disclose any material reduction.
 
-After a project install:
+After installation, the user speaks normally. The coding assistant handles invocation:
 
-- Codex: invoke `$pk`, followed by an optional mode and the request.
-- Claude Code: invoke `/pk`.
-- GitHub Copilot: invoke `/pk` in VS Code, Visual Studio, or a supported JetBrains prompt-file surface.
+- Codex: automatically applies the `pk` routing skill to evaluate the request.
+- Claude Code: automatically applies the `pk` routing skill.
+- GitHub Copilot: automatically routes to the `pk` skill where supported (like VS Code or Visual Studio prompt files).
 
 Copilot prompt files are project-scoped in this installer. A user-scope Copilot install receives the shared `pk` skill but does not modify a personal prompt-file directory; on a skill-capable surface, ask Copilot to use the `pk` skill or rely on automatic routing.
 

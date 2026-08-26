@@ -63,10 +63,7 @@ verify the installation, and tell me when PowerKit is ready.
 ```
 
 **2. Work Normally in Any Repository:**
-Once installed globally, repositories remain clean with zero PowerKit core files by default. PowerKit automatically routes your requests to the appropriate workflow. You do not need to explicitly invoke the `pk` skill for ordinary tasks. However, you can still use explicit modes depending on the host:
-- **Codex**: `$pk <mode>`
-- **Claude Code**: `/pk <mode>`
-- **GitHub Copilot**: `/pk <mode>` (where supported)
+Once installed globally, repositories remain clean with zero PowerKit core files by default. Your coding assistant automatically uses the `pk` skill in the background to route your requests to the appropriate workflow. Just speak to your assistant normally. You do not need to invoke any special commands or learn any syntax.
 
 ---
 
@@ -89,9 +86,9 @@ More agents, more reasoning, and more context are not automatically better. Powe
 
 ---
 
-## The `pk` Command Surface
+## Agent Workflows
 
-The `pk` skill routes requests based on actual need. Effort controls resources, Risk controls permissions. 
+The `pk` skill automatically routes requests based on actual need behind the scenes. Your agent uses these modes internally to control resources and permissions. 
 
 | Command | Use it when |
 |---|---|
