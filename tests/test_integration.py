@@ -36,8 +36,13 @@ class IntegratedReleaseCandidateTests(unittest.TestCase):
     maxDiff = None
 
     def run_powerkit(self, *args: str):
+        cmd_args = list(args)
+        if cmd_args and cmd_args[0] in {"init", "install"}:
+            if "--scope" not in cmd_args:
+                cmd_args.insert(1, "--scope")
+                cmd_args.insert(2, "project")
         return subprocess.run(
-            [PYTHON, "-m", "powerkit", *args],
+            [PYTHON, "-m", "powerkit", *cmd_args],
             cwd=ROOT,
             text=True,
             capture_output=True,
@@ -178,7 +183,7 @@ class IntegratedReleaseCandidateTests(unittest.TestCase):
             clone_config.parent.mkdir(parents=True)
             shutil.copy2(source / ".ai-powerkit/project.json", clone_config)
 
-            result = self.run_powerkit("sync", "--target", str(clone))
+            result = self.run_powerkit("install", "--scope", "project", "--target", str(clone), "--yes")
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assert_complete_pk(clone / ".agents/skills/pk")
             self.assert_complete_pk(clone / ".claude/skills/pk")
@@ -220,7 +225,7 @@ class IntegratedReleaseCandidateTests(unittest.TestCase):
                 marker_path.write_text(json.dumps(marker, indent=2) + "\n", encoding="utf-8")
 
             result = self.run_powerkit(
-                "update", "--target", str(target), "--version", "0.5.2", "--yes"
+                "update", "--target", str(target), "--version", "0.6.0", "--yes"
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             updated_config = self.read_json(config_path)

@@ -50,18 +50,20 @@ When the agent finishes a task, PowerKit shows you what you now own, how it work
 
 You do not need to learn PowerKit before using it. Just give it to your coding assistant.
 
+**PowerKit upgrades the coding assistant, not the repository. Install it once globally, and use it everywhere.**
+
 **1. Ask your assistant to install:**
 ```text
-Install AI Engineering PowerKit into this repository:
+Install AI Engineering PowerKit globally into my coding environment:
 
 https://github.com/tyreamer/ai-engineering-powerkit
 
-Follow BOOTSTRAP.md, preserve existing project configuration,
+Follow BOOTSTRAP.md to perform a global installation (`powerkit init`),
 verify the installation, and tell me when PowerKit is ready.
 ```
 
-**2. Work Normally:**
-Once installed, PowerKit automatically routes your requests to the appropriate workflow. You do not need to explicitly invoke the `pk` skill for ordinary tasks. However, you can still use explicit modes depending on the host:
+**2. Work Normally in Any Repository:**
+Once installed globally, repositories remain clean with zero PowerKit core files by default. PowerKit automatically routes your requests to the appropriate workflow. You do not need to explicitly invoke the `pk` skill for ordinary tasks. However, you can still use explicit modes depending on the host:
 - **Codex**: `$pk <mode>`
 - **Claude Code**: `/pk <mode>`
 - **GitHub Copilot**: `/pk <mode>` (where supported)

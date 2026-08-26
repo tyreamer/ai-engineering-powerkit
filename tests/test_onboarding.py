@@ -17,8 +17,13 @@ class AgentOnboardingTests(unittest.TestCase):
     maxDiff = None
 
     def run_powerkit(self, *args: str, cwd: Path | None = None):
+        cmd_args = list(args)
+        if cmd_args and cmd_args[0] in {"init", "install"}:
+            if "--scope" not in cmd_args:
+                cmd_args.insert(1, "--scope")
+                cmd_args.insert(2, "project")
         return subprocess.run(
-            [PYTHON, "-m", "powerkit", *args],
+            [PYTHON, "-m", "powerkit", *cmd_args],
             cwd=cwd or ROOT,
             text=True,
             capture_output=True,
@@ -267,7 +272,7 @@ class AgentOnboardingTests(unittest.TestCase):
             clone_config.parent.mkdir(parents=True)
             shutil.copy2(source / ".ai-powerkit/project.json", clone_config)
 
-            result = self.run_powerkit("sync", "--target", str(clone))
+            result = self.run_powerkit("install", "--scope", "project", "--target", str(clone), "--yes")
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertTrue((clone / ".claude/skills/pk/SKILL.md").is_file())
             self.assertTrue((clone / ".agents/skills/pk/SKILL.md").is_file())
@@ -350,12 +355,12 @@ class AgentOnboardingTests(unittest.TestCase):
             self.assertEqual(json.loads(status.stdout)["state"], "update-available")
 
             result = self.run_powerkit(
-                "update", "--target", str(target), "--version", "0.5.2", "--yes"
+                "update", "--target", str(target), "--version", "0.6.0", "--yes"
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("# Consumer rules", instruction.read_text(encoding="utf-8"))
             updated_config = json.loads(config_path.read_text(encoding="utf-8"))
-            self.assertEqual(updated_config["powerkit"]["version"], "0.5.2")
+            self.assertEqual(updated_config["powerkit"]["version"], "0.6.0")
             doctor = self.run_powerkit("doctor", "--target", str(target))
             self.assertEqual(doctor.returncode, 0, doctor.stdout + doctor.stderr)
 

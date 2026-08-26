@@ -262,7 +262,7 @@ class InstallRequest:
     base: Path
     profiles: tuple[str, ...]
     platforms: frozenset[str]
-    scope: str = "project"
+    scope: str = "user"
     include_agents: bool = False
     stage_hooks: bool = False
     dry_run: bool = False
@@ -914,7 +914,9 @@ def execute_install(request: InstallRequest) -> InstallResult:
     if request.scope not in {"project", "user"}:
         raise RuntimeError(f"Unknown installation scope: {request.scope}")
 
+    # For user scope, assets are managed relative to the provided base (usually Path.home()).
     base = request.base.expanduser().resolve()
+
     if request.scope == "project":
         if not base.is_dir():
             raise RuntimeError(f"Target directory does not exist: {base}")
@@ -931,16 +933,43 @@ def execute_install(request: InstallRequest) -> InstallResult:
     version = str(catalog["version"])
 
     skill_ops: list[tuple[Path, Path]] = []
-    for skill_root in destinations.values():
+    
+    if request.scope == "user":
+        from powerkit.home import releases_directory
+        release_skills = releases_directory(base) / version / "skills"
+        # Copy ALL selected skills to the central release
         for name in skill_names:
-            skill_ops.append((ROOT / ".agents" / "skills" / name, skill_root / name))
+            skill_ops.append((ROOT / ".agents" / "skills" / name, release_skills / name))
+        # Copy ONLY the thin 'pk' adapter to user platform directories
+        if "pk" in skill_names:
+            for skill_root in destinations.values():
+                skill_ops.append((ROOT / ".agents" / "skills" / "pk", skill_root / "pk"))
+    else:
+        # Project scope: copy ALL selected skills to project destinations
+        for skill_root in destinations.values():
+            for name in skill_names:
+                skill_ops.append((ROOT / ".agents" / "skills" / name, skill_root / name))
+                
     instruction_ops = instruction_operations(base, request.scope, set(request.platforms))
-    agent_ops, skipped_agent_platforms = (
-        agent_operations(base, request.scope, set(request.platforms))
-        if request.include_agents
-        else ([], [])
-    )
-    staged_ops = hook_operations(base, set(request.platforms)) if request.stage_hooks else []
+    
+    # Similarly, for agents and hooks, we only want them in the central release for user scope
+    agent_ops: list[tuple[Path, Path]] = []
+    skipped_agent_platforms: list[str] = []
+    if request.include_agents:
+        agent_ops, skipped_agent_platforms = agent_operations(base, request.scope, set(request.platforms))
+            
+    staged_ops: list[tuple[Path, Path]] = []
+    if request.stage_hooks:
+        if request.scope == "user":
+            hook_root = releases_directory(base) / version / "hooks"
+            source_hook_root = ROOT / "hooks"
+            if source_hook_root.is_dir():
+                for source in sorted(source_hook_root.iterdir()):
+                    if source.is_file() and source.suffix in {".py", ".md"}:
+                        staged_ops.append((source, hook_root / source.name))
+        else:
+            staged_ops = hook_operations(base, set(request.platforms))
+
     command_ops = command_operations(
         base,
         request.scope,
@@ -954,7 +983,12 @@ def execute_install(request: InstallRequest) -> InstallResult:
         set(skill_names),
         command_manifest,
     )
-    manifest_path = base / MANIFEST_PATH
+    from powerkit.home import releases_directory
+    if request.scope == "user":
+        manifest_path = releases_directory(base) / version / "install-manifest.json"
+    else:
+        manifest_path = base / MANIFEST_PATH
+    print(f"DEBUG: execute_install saving manifest to {manifest_path}")
     installer.preflight_path(manifest_path)
     if manifest_path.exists() and not manifest_path.is_file():
         raise RuntimeError(f"Installation manifest path is not a file: {manifest_path}")

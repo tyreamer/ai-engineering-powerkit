@@ -384,9 +384,24 @@ def _expected_context_assets(
         skill_roots.append(".agents/skills")
     if "claude" in platforms:
         skill_roots.append(".claude/skills")
-    for root in skill_roots:
+        
+    if scope == "project":
+        for root in skill_roots:
+            for skill in expected_skills:
+                expected[f"{root}/{skill}"] = {"kind": "skill", "skill": skill}
+    else:
+        # User scope: All skills in global release directory
+        from powerkit.home import default_powerkit_home
+        version = str(payload["source"]["version"]) if "source" in payload and "version" in payload["source"] else "0.6.0"
+        global_release_skills = (default_powerkit_home(target) / "releases" / version / "skills").relative_to(target).as_posix()
         for skill in expected_skills:
-            expected[f"{root}/{skill}"] = {"kind": "skill", "skill": skill}
+            expected[f"{global_release_skills}/{skill}"] = {"kind": "skill", "skill": skill}
+        
+        # User scope: Only 'pk' adapter in platform directories
+        if "pk" in expected_skills:
+            for root in skill_roots:
+                expected[f"{root}/pk"] = {"kind": "skill", "skill": "pk"}
+        
     if scope == "project" and "copilot" in platforms and "pk" in expected_skills:
         expected[".github/prompts/pk.prompt.md"] = {"kind": "managed-file"}
     return expected
@@ -568,6 +583,12 @@ class ContextInventory:
             raise ContextAuditError(f"Target directory does not exist: {self.target}")
         self.config = _read_json(self.target / ".ai-powerkit/project.json")
         self.manifest = _read_json(self.target / ".ai-powerkit/install-manifest.json")
+        if self.manifest is None:
+            # Fall back to user scope manifest if not found locally
+            from powerkit.home import default_powerkit_home
+            version = self.config.get("powerkit", {}).get("version", distribution_version()) if isinstance(self.config, dict) else distribution_version()
+            user_manifest = default_powerkit_home(self.target) / "releases" / version / "install-manifest.json"
+            self.manifest = _read_json(user_manifest)
         source_candidate = (self.target / "catalog.json").is_file() and (
             self.target / ".agents/skills"
         ).is_dir()
@@ -600,7 +621,7 @@ class ContextInventory:
         config_settings = None
         if self.config is not None and not is_source:
             try:
-                config_settings = settings_from_config(self.config)
+                config_settings = settings_from_config(self.config, self.target)
             except RuntimeError as exc:
                 raise ContextAuditError(str(exc)) from exc
         if is_source:

@@ -54,7 +54,10 @@ def execute_uninstall(
         raise RuntimeError("The installation manifest has invalid or duplicate asset paths.")
     config = load_project_config(target)
     assert config is not None
-    settings = settings_from_config(config)
+    try:
+        settings = settings_from_config(config, target)
+    except RuntimeError as exc:
+        raise RuntimeError(f"Failed to load project settings: {exc}")
     if manifest.get("version") != settings.version:
         raise RuntimeError("Project and installation versions disagree; repair state before uninstalling.")
     expected_skills = selected_skills(catalog(), settings.profiles)

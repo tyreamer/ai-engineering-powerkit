@@ -93,8 +93,13 @@ class ContextBudgetTests(unittest.TestCase):
             self.assertGreaterEqual(instance, schema["minimum"], path)
 
     def run_powerkit(self, *args: str, cwd: Path = ROOT) -> subprocess.CompletedProcess[str]:
+        cmd_args = list(args)
+        if cmd_args and cmd_args[0] in {"init", "install"}:
+            if "--scope" not in cmd_args:
+                cmd_args.insert(1, "--scope")
+                cmd_args.insert(2, "project")
         return subprocess.run(
-            [PYTHON, "-m", "powerkit", *args],
+            [PYTHON, "-m", "powerkit", *cmd_args],
             cwd=cwd,
             text=True,
             capture_output=True,
@@ -549,6 +554,7 @@ class ContextBudgetTests(unittest.TestCase):
     def test_user_scope_models_platform_instruction_differences(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             home = Path(temp)
+            print(f"DEBUG TEST: home={home}")
             execute_install(
                 InstallRequest(
                     base=home,
@@ -833,11 +839,11 @@ class ContextBudgetTests(unittest.TestCase):
                 {
                     "schema_version": 2,
                     "toolkit": "ai-engineering-powerkit",
-                    "version": "0.5.2",
+                    "version": "0.6.0",
                     "source": {
                         "repository": "https://github.com/tyreamer/ai-engineering-powerkit",
-                        "version": "0.5.2",
-                        "ref": "v0.5.2"
+                        "version": "0.6.0",
+                        "ref": "v0.6.0"
                     },
                     "scope": "project",
                     "profiles": ["foundation"],

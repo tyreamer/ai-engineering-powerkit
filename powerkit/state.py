@@ -80,16 +80,22 @@ def load_project_config(target: Path, *, required: bool = True) -> dict[str, Any
     return payload
 
 
-def settings_from_config(payload: dict[str, Any]) -> ProjectSettings:
+from powerkit.home import get_global_default_version, project_workspace
+
+def settings_from_config(payload: dict[str, Any], target: Path) -> ProjectSettings:
     powerkit = payload.get("powerkit")
     if not isinstance(powerkit, dict):
         raise RuntimeError("PowerKit project configuration has no `powerkit` object.")
     version = powerkit.get("version")
+    if not isinstance(version, str) or not version.strip():
+        # Fallback to global if project pin is missing
+        global_version = get_global_default_version()
+        if not global_version:
+            raise RuntimeError("PowerKit project configuration has no pinned version and no global default.")
+        version = global_version
     profiles = powerkit.get("profiles")
     platforms = powerkit.get("platforms")
     source = powerkit.get("source")
-    if not isinstance(version, str) or not version.strip():
-        raise RuntimeError("PowerKit project configuration has no pinned version.")
     if not isinstance(profiles, list) or not profiles or not all(
         isinstance(item, str) and item.strip() for item in profiles
     ):
@@ -102,8 +108,6 @@ def settings_from_config(payload: dict[str, Any]) -> ProjectSettings:
     for field in ("repository", "version", "ref"):
         if not isinstance(source.get(field), str) or not source[field].strip():
             raise RuntimeError(f"PowerKit source descriptor has invalid {field}.")
-    if source["version"] != version:
-        raise RuntimeError("PowerKit source version does not match the project version pin.")
     expected_repository = str(distribution_manifest()["repository"])
     if source["repository"] != expected_repository:
         raise RuntimeError(
@@ -113,26 +117,31 @@ def settings_from_config(payload: dict[str, Any]) -> ProjectSettings:
     hooks_staged = powerkit.get("hooks_staged", False)
     if not isinstance(agents, bool) or not isinstance(hooks_staged, bool):
         raise RuntimeError("PowerKit agents and hooks_staged settings must be booleans.")
-    proof = payload.get("proof", {"output_directory": ".ai-powerkit/proofs"})
+    proof = payload.get("proof", {})
     output_directory = proof.get("output_directory") if isinstance(proof, dict) else None
-    if not isinstance(output_directory, str) or not output_directory.strip():
-        raise RuntimeError("PowerKit proof.output_directory must be a non-empty string.")
-    relative_output = PurePosixPath(output_directory.strip())
-    if relative_output.is_absolute() or any(
-        part in {"", ".", ".."} for part in relative_output.parts
-    ):
-        raise RuntimeError("PowerKit proof.output_directory must be a safe relative path.")
-    if len(relative_output.parts) < 2 or relative_output.parts[0] != ".ai-powerkit":
-        raise RuntimeError(
-            "PowerKit proof.output_directory must be dedicated generated state under .ai-powerkit/."
-        )
+    
+    if output_directory:
+        relative_output = PurePosixPath(output_directory.strip())
+        if relative_output.is_absolute() or any(
+            part in {"", ".", ".."} for part in relative_output.parts
+        ):
+            raise RuntimeError("PowerKit proof.output_directory must be a safe relative path.")
+        if len(relative_output.parts) < 2 or relative_output.parts[0] != ".ai-powerkit":
+            raise RuntimeError(
+                "PowerKit proof.output_directory must be dedicated generated state under .ai-powerkit/."
+            )
+        resolved_proof_dir = target / relative_output
+    else:
+        # Default to global workspace
+        resolved_proof_dir = project_workspace(target) / "proofs"
+
     return ProjectSettings(
         version=version,
         profiles=tuple(dict.fromkeys(item.strip().lower() for item in profiles)),
         platforms=normalized_platforms,
         agents=agents,
         hooks_staged=hooks_staged,
-        proof_output_directory=relative_output.as_posix(),
+        proof_output_directory=str(resolved_proof_dir),
         source=dict(source),
     )
 
@@ -207,6 +216,19 @@ def build_project_config(
         },
     )
     return payload
+
+
+def write_global_config(payload: dict[str, Any], *, dry_run: bool) -> bool:
+    path = Path.home() / ".powerkit" / "config.json"
+    if not dry_run:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    rendered = json.dumps(payload, indent=2) + "\n"
+    existing = path.read_text(encoding="utf-8") if path.is_file() else None
+    if dry_run:
+        return existing != rendered
+    if existing != rendered:
+        atomic_write_text(path, rendered)
+    return existing != rendered
 
 
 def write_project_config(target: Path, payload: dict[str, Any], *, dry_run: bool) -> bool:

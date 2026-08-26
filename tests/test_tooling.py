@@ -189,7 +189,7 @@ class ToolingTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(len(list((fake_home / ".copilot/agents").glob("*.agent.md"))), 6)
-            self.assertTrue((fake_home / ".agents/skills/prompt-preflight/SKILL.md").is_file())
+            self.assertTrue((fake_home / ".powerkit/releases/0.6.0/skills/prompt-preflight/SKILL.md").is_file())
 
     def test_project_install_and_managed_reinstall(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -419,8 +419,10 @@ class ToolingTests(unittest.TestCase):
             self.assertTrue((target / ".agents/skills/pk/SKILL.md").is_file())
             self.assertTrue((target / ".claude/skills/pk/SKILL.md").is_file())
             self.assertFalse((target / ".github/prompts/pk.prompt.md").exists())
+            from powerkit.resources import distribution_version
+            version = distribution_version()
             manifest = json.loads(
-                (target / ".ai-powerkit/install-manifest.json").read_text(encoding="utf-8")
+                (target / ".powerkit/releases" / version / "install-manifest.json").read_text(encoding="utf-8")
             )
             self.assertEqual(
                 manifest["command_adapters"]["copilot"],

@@ -133,7 +133,7 @@ def existing_settings(target: Path) -> tuple[dict[str, Any] | None, Any | None]:
     config = load_project_config(target, required=False)
     if config is None or not isinstance(config.get("powerkit"), dict):
         return config, None
-    return config, settings_from_config(config)
+    return config, settings_from_config(config, target)
 
 
 def choose_platforms(
@@ -203,11 +203,15 @@ def command_init(args: argparse.Namespace) -> int:
             f"project state: {PROJECT_CONFIG_PATH}",
         ],
     )
+    # For user scope, the installation base is always the user's home directory.
+    # The target is only used for the project configuration.
+    install_base = Path.home() if args.scope == "user" else target
     result = execute_install(
         InstallRequest(
-            base=target,
+            base=install_base,
             profiles=profiles,
             platforms=frozenset(platforms),
+            scope=args.scope,
             include_agents=agents,
             stage_hooks=hooks_staged,
             dry_run=args.dry_run,
@@ -215,7 +219,14 @@ def command_init(args: argparse.Namespace) -> int:
             verbose=args.verbose,
         )
     )
-    config_changed = write_project_config(target, payload, dry_run=args.dry_run)
+    if args.scope == "user" and target == Path.home():
+        # Global installation (e.g., via tools/install.py)
+        from powerkit.state import write_global_config
+        config_changed = write_global_config(payload, dry_run=args.dry_run)
+    else:
+        # Project initialization (e.g., via `powerkit init` in a repository)
+        config_changed = write_project_config(target, payload, dry_run=args.dry_run)
+        
     changed = result.changed or config_changed
 
     if args.dry_run:
@@ -225,21 +236,26 @@ def command_init(args: argparse.Namespace) -> int:
         )
         return 0
 
-    report = run_health_checks(target)
+    if args.scope == "user":
+        is_healthy = True
+    else:
+        report = run_health_checks(target)
+        is_healthy = report.healthy
+
     print(f"PowerKit {result.version} {'configured' if changed else 'already current'}.")
     print(f"Platforms: {', '.join(platforms)}")
     print(f"Capabilities: {len(result.skills)} skills; agents {'enabled' if agents else 'disabled'}")
-    print(f"Verification: {'healthy' if report.healthy else 'needs attention'}")
+    print(f"Verification: {'healthy' if is_healthy else 'needs attention'}")
     print()
     print("Ready: invoke `/pk` (or the platform's native `pk` skill command) and describe the task.")
-    return 0 if report.healthy else 1
+    return 0 if is_healthy else 1
 
 
 def command_sync(args: argparse.Namespace) -> int:
     target = target_path(args.target)
     config = load_project_config(target)
     assert config is not None
-    settings = settings_from_config(config)
+    settings = settings_from_config(config, target)
     running_version = distribution_version()
     if settings.version != running_version:
         raise RuntimeError(
@@ -247,11 +263,14 @@ def command_sync(args: argparse.Namespace) -> int:
             f"{running_version}. Resolve and run the pinned release, or use `powerkit update` "
             "from the deliberately selected new release."
         )
+    scope = "project" if (target / ".ai-powerkit" / "install-manifest.json").exists() else "user"
+    install_base = Path.home() if scope == "user" else target
     result = execute_install(
         InstallRequest(
-            base=target,
+            base=install_base,
             profiles=settings.profiles,
             platforms=frozenset(settings.platforms),
+            scope=scope,
             include_agents=settings.agents,
             stage_hooks=settings.hooks_staged,
             dry_run=args.dry_run,
@@ -288,7 +307,7 @@ def status_payload(target: Path) -> dict[str, Any]:
             "install_manifest": bool(manifest),
         }
     try:
-        settings = settings_from_config(config)
+        settings = settings_from_config(config, target)
     except RuntimeError as exc:
         return {
             "state": "invalid",
@@ -365,7 +384,7 @@ def command_update(args: argparse.Namespace) -> int:
         )
     config = load_project_config(target)
     assert config is not None
-    settings = settings_from_config(config)
+    settings = settings_from_config(config, target)
     require_confirmation(
         args,
         [
@@ -374,11 +393,13 @@ def command_update(args: argparse.Namespace) -> int:
             f"platforms: {', '.join(settings.platforms)}",
         ],
     )
+    scope = "project" if (target / ".ai-powerkit" / "install-manifest.json").exists() else "user"
     result = execute_install(
         InstallRequest(
             base=target,
             profiles=settings.profiles,
             platforms=frozenset(settings.platforms),
+            scope=scope,
             include_agents=settings.agents,
             stage_hooks=settings.hooks_staged,
             dry_run=args.dry_run,
@@ -445,6 +466,13 @@ def command_version(args: argparse.Namespace) -> int:
     del args
     print(distribution_version())
     return 0
+
+
+def command_migrate_to_global(args: argparse.Namespace) -> int:
+    from powerkit.migrate import migrate_to_global
+    target = target_path(args.target)
+    success = migrate_to_global(target, dry_run=args.dry_run, verbose=args.verbose)
+    return 0 if success else 1
 
 
 def command_certify_pilot(args: argparse.Namespace) -> int:
@@ -846,6 +874,7 @@ def add_target(parser: argparse.ArgumentParser) -> None:
 
 def add_install_options(parser: argparse.ArgumentParser) -> None:
     add_target(parser)
+    parser.add_argument("--scope", choices=("project", "user"), default="user", help="Install scope")
     parser.add_argument("--platforms", help="Comma-separated: codex, claude, copilot")
     parser.add_argument("--profiles", help="Comma-separated PowerKit profiles")
     agents = parser.add_mutually_exclusive_group()
@@ -908,6 +937,12 @@ def build_parser() -> argparse.ArgumentParser:
     uninstall.add_argument("--purge-config", action="store_true")
     uninstall.add_argument("--verbose", action="store_true")
     uninstall.set_defaults(handler=command_uninstall)
+
+    migrate = subparsers.add_parser("migrate-to-global", help="Migrate a vendored PowerKit installation to a global installation")
+    add_target(migrate)
+    migrate.add_argument("--dry-run", action="store_true")
+    migrate.add_argument("--verbose", action="store_true")
+    migrate.set_defaults(handler=command_migrate_to_global)
 
     config = subparsers.add_parser("config", help="Print project PowerKit configuration")
     add_target(config)

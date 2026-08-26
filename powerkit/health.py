@@ -180,8 +180,9 @@ def run_health_checks(target: Path) -> HealthReport:
 
     try:
         config = load_project_config(target)
-        assert config is not None
-        settings = settings_from_config(config)
+        if config is None:
+            raise ValueError("Configuration missing")
+        settings = settings_from_config(config, target)
         expected_skills = selected_skills(catalog_payload, settings.profiles)
         config_ok = True
         config_detail = (
