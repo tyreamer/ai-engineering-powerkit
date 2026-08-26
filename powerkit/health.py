@@ -224,16 +224,23 @@ def run_health_checks(target: Path) -> HealthReport:
 
     if settings and manifest_ok and manifest:
         manifest_source = manifest.get("source")
-        state_ok = (
-            settings.version == manifest.get("version")
-            and isinstance(manifest_source, dict)
-            and manifest_source.get("version") == settings.version
-            and list(settings.profiles) == manifest.get("profiles")
-            and expected_skills == manifest.get("skills")
-            and list(settings.platforms) == manifest.get("platforms")
-            and settings.agents == bool(manifest.get("agents"))
-            and settings.hooks_staged == bool(manifest.get("hooks_staged"))
-        )
+        if manifest.get("scope") == "user":
+            state_ok = (
+                settings.version == manifest.get("version")
+                and isinstance(manifest_source, dict)
+                and manifest_source.get("version") == settings.version
+            )
+        else:
+            state_ok = (
+                settings.version == manifest.get("version")
+                and isinstance(manifest_source, dict)
+                and manifest_source.get("version") == settings.version
+                and list(settings.profiles) == manifest.get("profiles")
+                and expected_skills == manifest.get("skills")
+                and list(settings.platforms) == manifest.get("platforms")
+                and settings.agents == bool(manifest.get("agents"))
+                and settings.hooks_staged == bool(manifest.get("hooks_staged"))
+            )
         checks.append(
             Check(
                 "desired state",
@@ -279,6 +286,15 @@ def run_health_checks(target: Path) -> HealthReport:
                     False,
                     "managed_assets must be an array",
                     "Run `powerkit sync` after reviewing the manifest.",
+                )
+            )
+        elif manifest.get("scope") == "user":
+            checks.append(
+                Check(
+                    "managed assets",
+                    True,
+                    "global installation manifest assets are centrally managed",
+                    None,
                 )
             )
         else:

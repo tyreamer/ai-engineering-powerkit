@@ -37,10 +37,27 @@ def execute_uninstall(
 ) -> UninstallResult:
     target = target.expanduser().resolve()
     manifest_path = target / MANIFEST_PATH
-    ensure_managed_path(target, manifest_path)
-    manifest = read_json_file(manifest_path)
+    manifest = read_json_file(manifest_path) if manifest_path.is_file() else None
+    
+    config = load_project_config(target)
+    assert config is not None
+    try:
+        settings = settings_from_config(config, target)
+    except RuntimeError as exc:
+        raise RuntimeError(f"Failed to load project settings: {exc}")
+
     if not manifest or manifest.get("toolkit") != "ai-engineering-powerkit":
-        raise RuntimeError("No valid PowerKit installation manifest was found.")
+        installer = Installer(base=target, dry_run=dry_run, force=False, verbose=verbose)
+        config_path = target / PROJECT_CONFIG_PATH
+        if purge_config and config_path.is_symlink():
+            raise RuntimeError(f"Refusing to purge symlinked PowerKit project configuration: {config_path}")
+        if purge_config and config_path.is_file():
+            if not dry_run:
+                config_path.unlink()
+            if verbose:
+                print(f"{'Would remove' if dry_run else 'Removed'} {config_path}")
+        return UninstallResult(removed=(), preserved_config=not purge_config)
+
     if manifest.get("schema_version") != 2:
         raise RuntimeError(
             "The legacy installation manifest cannot prove safe removal. "
@@ -52,12 +69,6 @@ def execute_uninstall(
     paths = [asset.get("path") for asset in assets]
     if not all(isinstance(path, str) and path for path in paths) or len(set(paths)) != len(paths):
         raise RuntimeError("The installation manifest has invalid or duplicate asset paths.")
-    config = load_project_config(target)
-    assert config is not None
-    try:
-        settings = settings_from_config(config, target)
-    except RuntimeError as exc:
-        raise RuntimeError(f"Failed to load project settings: {exc}")
     if manifest.get("version") != settings.version:
         raise RuntimeError("Project and installation versions disagree; repair state before uninstalling.")
     expected_skills = selected_skills(catalog(), settings.profiles)

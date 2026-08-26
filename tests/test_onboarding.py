@@ -64,8 +64,8 @@ class AgentOnboardingTests(unittest.TestCase):
         )
         self.assertEqual(distribution["default_setup"]["profiles"], ["all"])
         self.assertEqual(len(catalog["skills"]), 24)
-        self.assertIn("python3 -m powerkit init", bootstrap)
-        self.assertIn("Never recreate", bootstrap)
+        self.assertIn("python3 tools/install.py", bootstrap)
+        self.assertIn("powerkit doctor", bootstrap)
         self.assertIn("Continue the user's original task", bootstrap)
 
     def test_noninteractive_init_requires_explicit_approval(self) -> None:

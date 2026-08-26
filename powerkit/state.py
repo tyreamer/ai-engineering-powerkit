@@ -262,8 +262,32 @@ def write_project_config(target: Path, payload: dict[str, Any], *, dry_run: bool
 
 def load_install_manifest(target: Path) -> dict[str, Any] | None:
     path = target / MANIFEST_PATH
-    ensure_managed_path(target, path)
-    return read_json_file(path)
+    if path.is_file():
+        ensure_managed_path(target, path)
+        return read_json_file(path)
+    
+    # Fallback to global installation manifest
+    try:
+        from powerkit.home import releases_directory, get_global_default_version
+        
+        config_path = target / PROJECT_CONFIG_PATH
+        version = None
+        if config_path.is_file():
+            payload = read_json_file(config_path)
+            if payload and isinstance(payload.get("powerkit"), dict):
+                version = payload["powerkit"].get("version")
+        
+        if not version:
+            version = get_global_default_version()
+            
+        if version:
+            global_path = releases_directory() / version / MANIFEST_PATH.name
+            if global_path.is_file():
+                return read_json_file(global_path)
+    except Exception:
+        pass
+    
+    return None
 
 
 def detect_platforms(target: Path) -> dict[str, tuple[str, ...]]:
