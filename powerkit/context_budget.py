@@ -392,7 +392,7 @@ def _expected_context_assets(
     else:
         # User scope: All skills in global release directory
         from powerkit.home import default_powerkit_home
-        version = str(payload["source"]["version"]) if "source" in payload and "version" in payload["source"] else "0.6.0"
+        version = str(payload["source"]["version"]) if "source" in payload and "version" in payload["source"] else "0.6.1"
         global_release_skills = (default_powerkit_home(target) / "releases" / version / "skills").relative_to(target).as_posix()
         for skill in expected_skills:
             expected[f"{global_release_skills}/{skill}"] = {"kind": "skill", "skill": skill}

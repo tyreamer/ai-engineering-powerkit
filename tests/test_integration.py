@@ -225,7 +225,7 @@ class IntegratedReleaseCandidateTests(unittest.TestCase):
                 marker_path.write_text(json.dumps(marker, indent=2) + "\n", encoding="utf-8")
 
             result = self.run_powerkit(
-                "update", "--target", str(target), "--version", "0.6.0", "--yes"
+                "update", "--target", str(target), "--version", "0.6.1", "--yes"
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             updated_config = self.read_json(config_path)

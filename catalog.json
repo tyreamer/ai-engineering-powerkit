@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "name": "AI Engineering PowerKit",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "canonical_skill_root": ".agents/skills",
   "profiles": {
     "foundation": {

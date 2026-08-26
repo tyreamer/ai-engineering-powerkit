@@ -189,7 +189,7 @@ class ToolingTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(len(list((fake_home / ".copilot/agents").glob("*.agent.md"))), 6)
-            self.assertTrue((fake_home / ".powerkit/releases/0.6.0/skills/prompt-preflight/SKILL.md").is_file())
+            self.assertTrue((fake_home / ".powerkit/releases/0.6.1/skills/prompt-preflight/SKILL.md").is_file())
 
     def test_project_install_and_managed_reinstall(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
